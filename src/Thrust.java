@@ -13,10 +13,11 @@ import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Vector2;
 
 public class Thrust extends SimulationFrame {
-	/** The controlled ship */
-	private SimulationBody ship;
-	private SimulationBody ship2;
-	private SimulationBody ball;
+	/** The controlled robot */
+	private Robot robot1;
+	private Robot robot2;
+	private Robot robot3;
+	private Box box;
 	
 	// Some booleans to indicate that a key is pressed
 	
@@ -118,13 +119,11 @@ public class Thrust extends SimulationFrame {
 		this.canvas.addKeyListener(listener);
 	}
 	
-	// Start world, create objects, add objects to world
+	// Start world, create objects, and add objects to world
 	protected void initializeWorld() {
 		this.world.setGravity(new Vector2(0, 0));
 		
-		// create all your bodies/joints
-		
-		// the bounds so we can keep playing
+		// Walls of the simulation
 		SimulationBody l = new SimulationBody();
 		l.addFixture(Geometry.createRectangle(1, 15));
 		l.translate(-5, 0);
@@ -149,34 +148,25 @@ public class Thrust extends SimulationFrame {
 		b.setMass(MassType.INFINITE);
 		this.world.addBody(b);
 		
-		// the ship
-		ship = new SimulationBody();
-		ship.addFixture(Geometry.createRectangle(0.5, 1.5), 1, 0.2, 0.2);
-		BodyFixture bf2 = ship.addFixture(Geometry.createEquilateralTriangle(0.5), 1, 0.2, 0.2);
-		bf2.getShape().translate(0, 0.9);
-		ship.translate(-2.0, 2.0);
-		ship.setMass(MassType.NORMAL);
-		this.world.addBody(ship);
+		// First robot
+		robot1 = new Robot();
+		robot1.translate(-2.0, 2.0);
+		this.world.addBody(robot1);
 		
-		// second ship
-		ship2 = new SimulationBody();
-		ship2.addFixture(Geometry.createRectangle(0.5, 1.5), 1, 0.2, 0.2);
-		BodyFixture bf22 = ship2.addFixture(Geometry.createEquilateralTriangle(0.5), 1, 0.2, 0.2);
-		bf22.getShape().translate(0, 0.9);
-		ship2.translate(2.0, 2.0);
-		ship2.setMass(MassType.NORMAL);
-		this.world.addBody(ship2);
+		// Second robot
+		robot2 = new Robot();
+		robot2.translate(2.0, 2.0);
+		this.world.addBody(robot2);
 		
-		// the ball
-		ball = new SimulationBody();
-		ball.addFixture(Geometry.createRectangle(1.6, 1.2), // radius
-				17.97925, 								  // density
-				0.08,									// friction
-				0.9);									// restitution (bounciness)
-		ball.translate(-1.0, 0.0);
-		//ball1.setLinearVelocity(5.36448, 0.0); 		  // 12 mph = 5.36448 m/s
-		ball.setMass(MassType.NORMAL);
-		this.world.addBody(ball);
+		// Third robot
+		robot3 = new Robot();
+		robot3.translate(1.0,-1.0);
+		this.world.addBody(robot3);
+		
+		// The box
+		box = new Box();
+		box.translate(-1.0, 0.0);
+		this.world.addBody(box);
 	}
 	
 	// Things to do every simulation tick
@@ -187,24 +177,22 @@ public class Thrust extends SimulationFrame {
 		final double scale = this.scale;
 		final double force = 2.0; //* elapsedTime;
 		
-        final Vector2 r = new Vector2(ship.getTransform().getRotation() + Math.PI * 0.5);
-        final Vector2 c = ship.getWorldCenter();
+        final Vector2 r = new Vector2(robot1.getTransform().getRotation() + Math.PI * 0.5);
+        final Vector2 c = robot1.getWorldCenter();
         
         // Rough goal calculations
-        final Vector2 ballCenter = ball.getWorldCenter();
-        double distToBall = ballCenter.distance(c) - 1.82;
+        final Vector2 boxCenter = box.getWorldCenter();
+        double distTobox = boxCenter.distance(c) - 1.82;
         g.draw(new Rectangle2D.Double(-150.0, -220.0, 300.0, 100.0));
-        if(ballCenter.x < 0.5 && ballCenter.x > -0.5 && ballCenter.y < -1.5 && ballCenter.y > -2.5)
+        if(boxCenter.x < 0.5 && boxCenter.x > -0.5 && boxCenter.y < -1.5 && boxCenter.y > -2.5)
         	System.out.println("In goal!!!");
         else
-            System.out.println("Goal Dist: "+ball.getWorldCenter().distance(0.0, -2.0)+"      \tShipBallDist: "+distToBall);
+            System.out.println("Goal Dist: "+box.getWorldCenter().distance(0.0, -2.0)+"      \trobotboxDist: "+distTobox);
         
         // Spacebar emergency stop key
         if (this.stop.get()) {
-        	ship.setLinearVelocity(0.0,0.0);
-        	ship.setAngularVelocity(0.0);
-        	ship2.setLinearVelocity(0.0,0.0);
-        	ship2.setAngularVelocity(0.0);
+        	robot1.stop();
+        	robot2.stop();
         }
         
 		// Apply linear thrust
@@ -213,7 +201,7 @@ public class Thrust extends SimulationFrame {
         	Vector2 f = r.product(force);
         	Vector2 p = c.sum(r.product(-0.9));
         	
-        	ship.applyForce(f);
+        	robot1.applyForce(f);
         	
         	g.setColor(Color.ORANGE);
         	g.draw(new Line2D.Double(p.x * scale, p.y * scale, (p.x - f.x) * scale, (p.y - f.y) * scale));
@@ -223,17 +211,17 @@ public class Thrust extends SimulationFrame {
         	Vector2 f = r.product(-force);
         	Vector2 p = c.sum(r.product(0.9));
         	
-        	ship.applyForce(f);
+        	robot1.applyForce(f);
         	
         	g.setColor(Color.ORANGE);
         	g.draw(new Line2D.Double(p.x * scale, p.y * scale, (p.x - f.x) * scale, (p.y - f.y) * scale));
         }
         // Slow down by default
-        else if (Math.abs(ship.getLinearVelocity().getMagnitude()) > 0) {
-        	Vector2 vel = ship.getLinearVelocity();
+        else if (Math.abs(robot1.getLinearVelocity().getMagnitude()) > 0) {
+        	Vector2 vel = robot1.getLinearVelocity();
         	Vector2 f = vel.getNormalized().product(force*-1.0);
         	Vector2 p = c.sum(r.product(-0.9));
-    		ship.applyForce(f);
+    		robot1.applyForce(f);
     		
     		g.setColor(Color.ORANGE);
         	g.draw(new Line2D.Double(p.x * scale, p.y * scale, (p.x - f.x) * scale, (p.y - f.y) * scale));
@@ -248,9 +236,9 @@ public class Thrust extends SimulationFrame {
         	Vector2 p2 = c.sum(r.product(-0.9));
         	
         	// apply a force to the top going left
-        	ship.applyForce(f1, p1);
+        	robot1.applyForce(f1, p1);
         	// apply a force to the bottom going right
-        	ship.applyForce(f2, p2);
+        	robot1.applyForce(f2, p2);
         	
         	g.setColor(Color.RED);
         	g.draw(new Line2D.Double(p1.x * scale, p1.y * scale, (p1.x - f1.x) * scale, (p1.y - f1.y) * scale));
@@ -264,18 +252,18 @@ public class Thrust extends SimulationFrame {
         	Vector2 p2 = c.sum(r.product(-0.9));
         	
         	// apply a force to the top going left
-        	ship.applyForce(f1, p1);
+        	robot1.applyForce(f1, p1);
         	// apply a force to the bottom going right
-        	ship.applyForce(f2, p2);
+        	robot1.applyForce(f2, p2);
         	
         	g.setColor(Color.RED);
         	g.draw(new Line2D.Double(p1.x * scale, p1.y * scale, (p1.x - f1.x) * scale, (p1.y - f1.y) * scale));
         	g.draw(new Line2D.Double(p2.x * scale, p2.y * scale, (p2.x - f2.x) * scale, (p2.y - f2.y) * scale));
         }
         // Slow down by default
-        else if (Math.abs(ship.getAngularVelocity()) > 0.0) {
+        else if (Math.abs(robot1.getAngularVelocity()) > 0.0) {
         	short positive = -1;
-        	if(ship.getAngularVelocity() > 0.0)
+        	if(robot1.getAngularVelocity() > 0.0)
         		positive = 1;
         	
         	Vector2 f1 = r.product(force * 0.1 * positive).left();
@@ -284,9 +272,9 @@ public class Thrust extends SimulationFrame {
         	Vector2 p2 = c.sum(r.product(-0.9));
         	
         	// apply a force to the top going left
-        	ship.applyForce(f1, p1);
+        	robot1.applyForce(f1, p1);
         	// apply a force to the bottom going right
-        	ship.applyForce(f2, p2);
+        	robot1.applyForce(f2, p2);
         	
         	g.setColor(Color.RED);
         	g.draw(new Line2D.Double(p1.x * scale, p1.y * scale, (p1.x - f1.x) * scale, (p1.y - f1.y) * scale));
@@ -294,20 +282,20 @@ public class Thrust extends SimulationFrame {
         }
         
         // Maximum speed limiting
-        Vector2 vel = ship.getLinearVelocity();
+        Vector2 vel = robot1.getLinearVelocity();
         double maxLinV = 1.5;
         if(vel.getMagnitude() > maxLinV) {
         	vel.setMagnitude(maxLinV);
-        	ship.setLinearVelocity(vel);
+        	robot1.setLinearVelocity(vel);
         }
         double maxAngV = 1.0;
-        double avel = ship.getAngularVelocity();
+        double avel = robot1.getAngularVelocity();
         if(Math.abs(avel) > maxAngV) {
         	if(avel > maxAngV)
         		avel = maxAngV;
         	else
         		avel = -1.0 * maxAngV;
-        	ship.setAngularVelocity(avel);
+        	robot1.setAngularVelocity(avel);
         }
         
         // Minimum speed limiting
@@ -317,11 +305,11 @@ public class Thrust extends SimulationFrame {
 	        double minAngV = 0.2;
 	        if(vel.getMagnitude() < minLinV) {
 	        	vel.setMagnitude(0.0);
-	        	ship.setLinearVelocity(vel);
+	        	robot1.setLinearVelocity(vel);
 	        }
 	        if(Math.abs(avel) < minAngV) {
 	        	avel = 0;
-	        	ship.setAngularVelocity(avel);
+	        	robot1.setAngularVelocity(avel);
 	        }
         }
 	}
