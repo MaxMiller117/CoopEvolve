@@ -1,35 +1,10 @@
-/*
- * Copyright (c) 2010-2016 William Bittle  http://www.dyn4j.org/
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification, are permitted 
- * provided that the following conditions are met:
- * 
- *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
- *     and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
- *     and the following disclaimer in the documentation and/or other materials provided with the 
- *     distribution.
- *   * Neither the name of dyn4j nor the names of its contributors may be used to endorse or 
- *     promote products derived from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.dyn4j.dynamics.BodyFixture;
@@ -37,89 +12,104 @@ import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Vector2;
 
-/**
- * Moderately complex scene of a rocket that has propulsion at various points
- * to allow control.  Control is given by the left, right, up, and down keys
- * and applies forces when pressed.
- * @author William Bittle
- * @version 3.2.1
- * @since 3.2.0
- */
 public class Thrust extends SimulationFrame {
-	/** The serial version id */
-	private static final long serialVersionUID = 3770932661470247325L;
-
 	/** The controlled ship */
 	private SimulationBody ship;
-	
+	private SimulationBody ship2;
 	private SimulationBody ball;
 	
 	// Some booleans to indicate that a key is pressed
 	
-	private AtomicBoolean forwardThrustOn = new AtomicBoolean(false);
-	private AtomicBoolean reverseThrustOn = new AtomicBoolean(false);
-	private AtomicBoolean leftThrustOn = new AtomicBoolean(false);
-	private AtomicBoolean rightThrustOn = new AtomicBoolean(false);
+	private AtomicBoolean forwardThrustOn1 = new AtomicBoolean(false);
+	private AtomicBoolean reverseThrustOn1 = new AtomicBoolean(false);
+	private AtomicBoolean leftThrustOn1 = new AtomicBoolean(false);
+	private AtomicBoolean rightThrustOn1 = new AtomicBoolean(false);
+	private AtomicBoolean forwardThrustOn2 = new AtomicBoolean(false);
+	private AtomicBoolean reverseThrustOn2 = new AtomicBoolean(false);
+	private AtomicBoolean leftThrustOn2 = new AtomicBoolean(false);
+	private AtomicBoolean rightThrustOn2 = new AtomicBoolean(false);
 	private AtomicBoolean stop = new AtomicBoolean(false);
-	private AtomicBoolean noKey = new AtomicBoolean(false);
+	private AtomicBoolean noKey1 = new AtomicBoolean(false);
+	private AtomicBoolean noKey2 = new AtomicBoolean(false);
 	
-	/**
-	 * Custom key adapter to listen for key events.
-	 * @author William Bittle
-	 * @version 3.2.1
-	 * @since 3.2.0
-	 */
 	private class CustomKeyListener extends KeyAdapter {
 		@Override
 		public void keyPressed(KeyEvent e) {
 			switch (e.getKeyCode()) {
 				case KeyEvent.VK_W:
-					forwardThrustOn.set(true);
+					forwardThrustOn1.set(true);
 					break;
 				case KeyEvent.VK_S:
-					reverseThrustOn.set(true);
+					reverseThrustOn1.set(true);
 					break;
 				case KeyEvent.VK_A:
-					leftThrustOn.set(true);
+					leftThrustOn1.set(true);
 					break;
 				case KeyEvent.VK_D:
-					rightThrustOn.set(true);
+					rightThrustOn1.set(true);
+					break;
+				case KeyEvent.VK_UP:
+					forwardThrustOn2.set(true);
+					break;
+				case KeyEvent.VK_DOWN:
+					reverseThrustOn2.set(true);
+					break;
+				case KeyEvent.VK_LEFT:
+					leftThrustOn2.set(true);
+					break;
+				case KeyEvent.VK_RIGHT:
+					rightThrustOn2.set(true);
 					break;
 				case KeyEvent.VK_SPACE:
-					forwardThrustOn.set(false);
-					reverseThrustOn.set(false);
-					leftThrustOn.set(false);
-					rightThrustOn.set(false);
+					forwardThrustOn1.set(false);
+					reverseThrustOn1.set(false);
+					leftThrustOn1.set(false);
+					rightThrustOn1.set(false);
+					forwardThrustOn2.set(false);
+					reverseThrustOn2.set(false);
+					leftThrustOn2.set(false);
+					rightThrustOn2.set(false);
 					stop.set(true);
 			}
-			noKey.set(!(forwardThrustOn.get() || reverseThrustOn.get() || leftThrustOn.get() || rightThrustOn.get()));
+			noKey1.set(!(forwardThrustOn1.get() || reverseThrustOn1.get() || leftThrustOn1.get() || rightThrustOn1.get()));
+			noKey2.set(!(forwardThrustOn2.get() || reverseThrustOn2.get() || leftThrustOn2.get() || rightThrustOn2.get()));
 		}
 		
 		@Override
 		public void keyReleased(KeyEvent e) {
 			switch (e.getKeyCode()) {
 				case KeyEvent.VK_W:
-					forwardThrustOn.set(false);
+					forwardThrustOn1.set(false);
 					break;
 				case KeyEvent.VK_S:
-					reverseThrustOn.set(false);
+					reverseThrustOn1.set(false);
 					break;
 				case KeyEvent.VK_A:
-					leftThrustOn.set(false);
+					leftThrustOn1.set(false);
 					break;
 				case KeyEvent.VK_D:
-					rightThrustOn.set(false);
+					rightThrustOn1.set(false);
+					break;
+				case KeyEvent.VK_UP:
+					forwardThrustOn2.set(false);
+					break;
+				case KeyEvent.VK_DOWN:
+					reverseThrustOn2.set(false);
+					break;
+				case KeyEvent.VK_LEFT:
+					leftThrustOn2.set(false);
+					break;
+				case KeyEvent.VK_RIGHT:
+					rightThrustOn2.set(false);
 					break;
 				case KeyEvent.VK_SPACE:
 					stop.set(false);
 			}
-			noKey.set(!(forwardThrustOn.get() || reverseThrustOn.get() || leftThrustOn.get() || rightThrustOn.get()));
+			noKey1.set(!(forwardThrustOn1.get() || reverseThrustOn1.get() || leftThrustOn1.get() || rightThrustOn1.get()));
+			noKey2.set(!(forwardThrustOn2.get() || reverseThrustOn2.get() || leftThrustOn2.get() || rightThrustOn2.get()));
 		}
 	}
 	
-	/**
-	 * Default constructor.
-	 */
 	public Thrust() {
 		super("Thrust", 64.0);
 		
@@ -128,9 +118,7 @@ public class Thrust extends SimulationFrame {
 		this.canvas.addKeyListener(listener);
 	}
 	
-	/**
-	 * Creates game objects and adds them to the world.
-	 */
+	// Start world, create objects, add objects to world
 	protected void initializeWorld() {
 		this.world.setGravity(new Vector2(0, 0));
 		
@@ -166,25 +154,32 @@ public class Thrust extends SimulationFrame {
 		ship.addFixture(Geometry.createRectangle(0.5, 1.5), 1, 0.2, 0.2);
 		BodyFixture bf2 = ship.addFixture(Geometry.createEquilateralTriangle(0.5), 1, 0.2, 0.2);
 		bf2.getShape().translate(0, 0.9);
-		ship.translate(0.0, 2.0);
+		ship.translate(-2.0, 2.0);
 		ship.setMass(MassType.NORMAL);
 		this.world.addBody(ship);
 		
+		// second ship
+		ship2 = new SimulationBody();
+		ship2.addFixture(Geometry.createRectangle(0.5, 1.5), 1, 0.2, 0.2);
+		BodyFixture bf22 = ship2.addFixture(Geometry.createEquilateralTriangle(0.5), 1, 0.2, 0.2);
+		bf22.getShape().translate(0, 0.9);
+		ship2.translate(2.0, 2.0);
+		ship2.setMass(MassType.NORMAL);
+		this.world.addBody(ship2);
+		
 		// the ball
 		ball = new SimulationBody();
-		ball.addFixture(Geometry.createCircle(0.928575), //  2.25 in diameter = 0.028575 m radius
-				17.97925, 								  //  0.126 oz/in^3 = 217.97925 kg/m^3
-				0.08,
-				0.9);
+		ball.addFixture(Geometry.createRectangle(1.6, 1.2), // radius
+				17.97925, 								  // density
+				0.08,									// friction
+				0.9);									// restitution (bounciness)
 		ball.translate(-1.0, 0.0);
 		//ball1.setLinearVelocity(5.36448, 0.0); 		  // 12 mph = 5.36448 m/s
 		ball.setMass(MassType.NORMAL);
 		this.world.addBody(ball);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.dyn4j.samples.SimulationFrame#update(java.awt.Graphics2D, double)
-	 */
+	// Things to do every simulation tick
 	@Override
 	protected void update(Graphics2D g, double elapsedTime) {
 		super.update(g, elapsedTime);
@@ -194,16 +189,27 @@ public class Thrust extends SimulationFrame {
 		
         final Vector2 r = new Vector2(ship.getTransform().getRotation() + Math.PI * 0.5);
         final Vector2 c = ship.getWorldCenter();
-		
+        
+        // Rough goal calculations
+        final Vector2 ballCenter = ball.getWorldCenter();
+        double distToBall = ballCenter.distance(c) - 1.82;
+        g.draw(new Rectangle2D.Double(-150.0, -220.0, 300.0, 100.0));
+        if(ballCenter.x < 0.5 && ballCenter.x > -0.5 && ballCenter.y < -1.5 && ballCenter.y > -2.5)
+        	System.out.println("In goal!!!");
+        else
+            System.out.println("Goal Dist: "+ball.getWorldCenter().distance(0.0, -2.0)+"      \tShipBallDist: "+distToBall);
+        
         // Spacebar emergency stop key
         if (this.stop.get()) {
         	ship.setLinearVelocity(0.0,0.0);
         	ship.setAngularVelocity(0.0);
+        	ship2.setLinearVelocity(0.0,0.0);
+        	ship2.setAngularVelocity(0.0);
         }
         
 		// Apply linear thrust
         // Drive forward
-        if (this.forwardThrustOn.get()) {
+        if (this.forwardThrustOn1.get()) {
         	Vector2 f = r.product(force);
         	Vector2 p = c.sum(r.product(-0.9));
         	
@@ -213,7 +219,7 @@ public class Thrust extends SimulationFrame {
         	g.draw(new Line2D.Double(p.x * scale, p.y * scale, (p.x - f.x) * scale, (p.y - f.y) * scale));
         } 
         // Drive backward
-        else if (this.reverseThrustOn.get()) {
+        else if (this.reverseThrustOn1.get()) {
         	Vector2 f = r.product(-force);
         	Vector2 p = c.sum(r.product(0.9));
         	
@@ -235,7 +241,7 @@ public class Thrust extends SimulationFrame {
         
         // Apply angular thrust
         // Turn left
-        if (this.leftThrustOn.get()) {
+        if (this.leftThrustOn1.get()) {
         	Vector2 f1 = r.product(force * 0.1).right();
         	Vector2 f2 = r.product(force * 0.1).left();
         	Vector2 p1 = c.sum(r.product(0.9));
@@ -251,7 +257,7 @@ public class Thrust extends SimulationFrame {
         	g.draw(new Line2D.Double(p2.x * scale, p2.y * scale, (p2.x - f2.x) * scale, (p2.y - f2.y) * scale));
         }
         // Turn right
-        else if (this.rightThrustOn.get()) {
+        else if (this.rightThrustOn1.get()) {
         	Vector2 f1 = r.product(force * 0.1).left();
         	Vector2 f2 = r.product(force * 0.1).right();
         	Vector2 p1 = c.sum(r.product(0.9));
@@ -306,7 +312,7 @@ public class Thrust extends SimulationFrame {
         
         // Minimum speed limiting
         // If the speed gets too low, stop it to prevent the simulated friction from thrashing
-        if(noKey.get()) {
+        if(noKey1.get()) {
 	        double minLinV = 0.5;
 	        double minAngV = 0.2;
 	        if(vel.getMagnitude() < minLinV) {
@@ -320,10 +326,6 @@ public class Thrust extends SimulationFrame {
         }
 	}
 	
-	/**
-	 * Entry point for the example application.
-	 * @param args command line arguments
-	 */
 	public static void main(String[] args) {
 		Thrust simulation = new Thrust();
 		simulation.run();
