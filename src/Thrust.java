@@ -175,7 +175,7 @@ public class Thrust extends SimulationFrame {
 		super.update(g, elapsedTime);
 		
 		final double scale = this.scale;
-		final double force = 2.0; //* elapsedTime;
+		final double force = 2.0;
 		
         final Vector2 r = new Vector2(robot1.getTransform().getRotation() + Math.PI * 0.5);
         final Vector2 c = robot1.getWorldCenter();
@@ -197,121 +197,63 @@ public class Thrust extends SimulationFrame {
         
 		// Apply linear thrust
         // Drive forward
-        if (this.forwardThrustOn1.get()) {
-        	Vector2 f = r.product(force);
-        	Vector2 p = c.sum(r.product(-0.9));
-        	
-        	robot1.applyForce(f);
-        	
-        	g.setColor(Color.ORANGE);
-        	g.draw(new Line2D.Double(p.x * scale, p.y * scale, (p.x - f.x) * scale, (p.y - f.y) * scale));
-        } 
+        if (this.forwardThrustOn1.get())
+        	robot1.driveForward();
         // Drive backward
-        else if (this.reverseThrustOn1.get()) {
-        	Vector2 f = r.product(-force);
-        	Vector2 p = c.sum(r.product(0.9));
-        	
-        	robot1.applyForce(f);
-        	
-        	g.setColor(Color.ORANGE);
-        	g.draw(new Line2D.Double(p.x * scale, p.y * scale, (p.x - f.x) * scale, (p.y - f.y) * scale));
-        }
+        else if (this.reverseThrustOn1.get())
+        	robot1.driveBackward();
         // Slow down by default
-        else if (Math.abs(robot1.getLinearVelocity().getMagnitude()) > 0) {
-        	Vector2 vel = robot1.getLinearVelocity();
-        	Vector2 f = vel.getNormalized().product(force*-1.0);
-        	Vector2 p = c.sum(r.product(-0.9));
-    		robot1.applyForce(f);
-    		
-    		g.setColor(Color.ORANGE);
-        	g.draw(new Line2D.Double(p.x * scale, p.y * scale, (p.x - f.x) * scale, (p.y - f.y) * scale));
+        else {
+        	robot1.linearStopMoving();
         }
         
         // Apply angular thrust
         // Turn left
         if (this.leftThrustOn1.get()) {
-        	Vector2 f1 = r.product(force * 0.1).right();
-        	Vector2 f2 = r.product(force * 0.1).left();
-        	Vector2 p1 = c.sum(r.product(0.9));
-        	Vector2 p2 = c.sum(r.product(-0.9));
-        	
-        	// apply a force to the top going left
-        	robot1.applyForce(f1, p1);
-        	// apply a force to the bottom going right
-        	robot1.applyForce(f2, p2);
-        	
-        	g.setColor(Color.RED);
-        	g.draw(new Line2D.Double(p1.x * scale, p1.y * scale, (p1.x - f1.x) * scale, (p1.y - f1.y) * scale));
-        	g.draw(new Line2D.Double(p2.x * scale, p2.y * scale, (p2.x - f2.x) * scale, (p2.y - f2.y) * scale));
+        	robot1.driveLeft();
         }
         // Turn right
         else if (this.rightThrustOn1.get()) {
-        	Vector2 f1 = r.product(force * 0.1).left();
-        	Vector2 f2 = r.product(force * 0.1).right();
-        	Vector2 p1 = c.sum(r.product(0.9));
-        	Vector2 p2 = c.sum(r.product(-0.9));
-        	
-        	// apply a force to the top going left
-        	robot1.applyForce(f1, p1);
-        	// apply a force to the bottom going right
-        	robot1.applyForce(f2, p2);
-        	
-        	g.setColor(Color.RED);
-        	g.draw(new Line2D.Double(p1.x * scale, p1.y * scale, (p1.x - f1.x) * scale, (p1.y - f1.y) * scale));
-        	g.draw(new Line2D.Double(p2.x * scale, p2.y * scale, (p2.x - f2.x) * scale, (p2.y - f2.y) * scale));
+        	robot1.driveRight();
         }
         // Slow down by default
-        else if (Math.abs(robot1.getAngularVelocity()) > 0.0) {
-        	short positive = -1;
-        	if(robot1.getAngularVelocity() > 0.0)
-        		positive = 1;
-        	
-        	Vector2 f1 = r.product(force * 0.1 * positive).left();
-        	Vector2 f2 = r.product(force * 0.1 * positive).right();
-        	Vector2 p1 = c.sum(r.product(0.9));
-        	Vector2 p2 = c.sum(r.product(-0.9));
-        	
-        	// apply a force to the top going left
-        	robot1.applyForce(f1, p1);
-        	// apply a force to the bottom going right
-        	robot1.applyForce(f2, p2);
-        	
-        	g.setColor(Color.RED);
-        	g.draw(new Line2D.Double(p1.x * scale, p1.y * scale, (p1.x - f1.x) * scale, (p1.y - f1.y) * scale));
-        	g.draw(new Line2D.Double(p2.x * scale, p2.y * scale, (p2.x - f2.x) * scale, (p2.y - f2.y) * scale));
+        else {
+        	robot1.angularStopMoving();
+        }
+        // Maximum speed limiting and Minimum speed limiting
+        robot1.limitSpeed(noKey1.get());
+        
+     // Apply linear thrust
+        // Drive forward
+        if (this.forwardThrustOn1.get())
+        	robot1.driveForward();
+        // Drive backward
+        else if (this.reverseThrustOn1.get())
+        	robot1.driveBackward();
+        // Slow down by default
+        else {
+        	robot1.linearStopMoving();
         }
         
-        // Maximum speed limiting
-        Vector2 vel = robot1.getLinearVelocity();
-        double maxLinV = 1.5;
-        if(vel.getMagnitude() > maxLinV) {
-        	vel.setMagnitude(maxLinV);
-        	robot1.setLinearVelocity(vel);
+        // Apply angular thrust
+        // Turn left
+        if (this.leftThrustOn1.get()) {
+        	robot1.driveLeft();
         }
-        double maxAngV = 1.0;
-        double avel = robot1.getAngularVelocity();
-        if(Math.abs(avel) > maxAngV) {
-        	if(avel > maxAngV)
-        		avel = maxAngV;
-        	else
-        		avel = -1.0 * maxAngV;
-        	robot1.setAngularVelocity(avel);
-        }
+        // Turn right
+        else if (this.rightThrustOn1.get())
+        	robot1.driveRight();
+        else
+        	robot1.angularStopMoving();
+        robot1.limitSpeed(noKey1.get());
         
-        // Minimum speed limiting
-        // If the speed gets too low, stop it to prevent the simulated friction from thrashing
-        if(noKey1.get()) {
-	        double minLinV = 0.5;
-	        double minAngV = 0.2;
-	        if(vel.getMagnitude() < minLinV) {
-	        	vel.setMagnitude(0.0);
-	        	robot1.setLinearVelocity(vel);
-	        }
-	        if(Math.abs(avel) < minAngV) {
-	        	avel = 0;
-	        	robot1.setAngularVelocity(avel);
-	        }
-        }
+        robot2.linearStopMoving();
+        robot2.angularStopMoving();
+        robot2.limitSpeed(true);
+        
+        robot3.linearStopMoving();
+        robot3.angularStopMoving();
+        robot3.limitSpeed(true);
 	}
 	
 	public static void main(String[] args) {
