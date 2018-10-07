@@ -254,6 +254,10 @@ public class Thrust extends SimulationFrame {
         robot3.linearStopMoving();
         robot3.angularStopMoving();
         robot3.limitSpeed(true);
+        
+        box.linearStopMoving();
+        box.angularStopMoving();
+        box.limitSpeed(true);
 	}
 	
 	public static void main(String[] args) {

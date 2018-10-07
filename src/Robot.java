@@ -3,13 +3,17 @@ import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Vector2;
 
+// Simulates the Dexter GoPiGo3 robots
+// These robots continue to run the last command given to them
 public class Robot extends SimulationBody {
-	final double force = 2.0;
+	final double force = 0.6;
+	
+	// Command options
 	public Robot() {
 		super();
-		this.addFixture(Geometry.createRectangle(0.5, 1.5), 0.6, 0.2, 0.2);
-		BodyFixture bf2 = this.addFixture(Geometry.createEquilateralTriangle(0.5), 1, 0.2, 0.2);
-		bf2.getShape().translate(0, 0.9);
+		this.addFixture(Geometry.createRectangle(0.775, 0.96875), 0.6, 0.2, 0.2);
+		//BodyFixture bf2 = this.addFixture(Geometry.createEquilateralTriangle(0.5), 1, 0.2, 0.2);
+		//bf2.getShape().translate(0, 0.9);
 		this.setMass(MassType.NORMAL);
 	}
 	public void stop() {
@@ -38,8 +42,8 @@ public class Robot extends SimulationBody {
 		final Vector2 r = new Vector2(this.getTransform().getRotation() + Math.PI * 0.5);
         final Vector2 c = this.getWorldCenter();
         
-        Vector2 f1 = r.product(force * 0.1).right();
-    	Vector2 f2 = r.product(force * 0.1).left();
+        Vector2 f1 = r.product(force * 0.2).right();
+    	Vector2 f2 = r.product(force * 0.2).left();
     	Vector2 p1 = c.sum(r.product(0.9));
     	Vector2 p2 = c.sum(r.product(-0.9));
     	
@@ -52,8 +56,8 @@ public class Robot extends SimulationBody {
 		final Vector2 r = new Vector2(this.getTransform().getRotation() + Math.PI * 0.5);
         final Vector2 c = this.getWorldCenter();
         
-        Vector2 f1 = r.product(force * 0.1).left();
-    	Vector2 f2 = r.product(force * 0.1).right();
+        Vector2 f1 = r.product(force * 0.2).left();
+    	Vector2 f2 = r.product(force * 0.2).right();
     	Vector2 p1 = c.sum(r.product(0.9));
     	Vector2 p2 = c.sum(r.product(-0.9));
     	
@@ -68,8 +72,8 @@ public class Robot extends SimulationBody {
 		
 		if (Math.abs(this.getLinearVelocity().getMagnitude()) > 0) {
         	Vector2 vel = this.getLinearVelocity();
-        	double m = vel.getMagnitudeSquared();
-        	double slowForce = Math.min(m/2.0, force);
+        	double speed = vel.getMagnitudeSquared();
+        	double slowForce = Math.min(speed/1.0, force);
         	Vector2 f = vel.getNormalized().product(slowForce*-2.0);
         	Vector2 p = c.sum(r.product(-0.9));
     		this.applyForce(f);
