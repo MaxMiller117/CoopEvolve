@@ -17,7 +17,14 @@ public class Thrust extends SimulationFrame {
 	private Robot robot1;
 	private Robot robot2;
 	private Robot robot3;
+	private short ticksTouching1;
+	private short ticksTouching2;
+	private short ticksTouching3;
+	final short ticksTouchingMaximum = 100;
+	final int tickCountMaximum = 5000;
 	private Box box;
+	private double goalDist;
+	private long tickCount = 0;
 	
 	// Some booleans to indicate that a key is pressed
 	
@@ -174,6 +181,9 @@ public class Thrust extends SimulationFrame {
 	protected void update(Graphics2D g, double elapsedTime) {
 		super.update(g, elapsedTime);
 		
+		tickCount++;
+		System.out.println("tickCount: "+tickCount);
+		
 		final double scale = this.scale;
 		final double force = 2.0;
 		
@@ -186,11 +196,13 @@ public class Thrust extends SimulationFrame {
         Rectangle2D goal = new Rectangle2D.Double(-5.0, -220.0, 10.0, 10.0);
         g.draw(goal);
         
-        //if(boxCenter.x < 0.5 && boxCenter.x > -0.5 && boxCenter.y < -1.5 && boxCenter.y > -2.5)
-        if(box.contains(new Vector2(0.0,-3.5)))
+        goalDist = box.getWorldCenter().distance(0.0, -3.5);
+        if(box.contains(new Vector2(0.0,-3.5))) {
         	System.out.println("In goal!!!");
+        	goalDist = 0.0;
+        }
         else
-            System.out.println("Goal Dist: "+box.getWorldCenter().distance(0.0, -3.5)+"      \trobotboxDist: "+distTobox);
+            System.out.println("Goal Dist: "+goalDist+"      \trobotboxDist: "+distTobox);
         
         // Spacebar emergency stop key
         if (this.stop.get()) {
@@ -261,6 +273,27 @@ public class Thrust extends SimulationFrame {
         box.linearStopMoving();
         box.angularStopMoving();
         box.limitSpeed(true);
+        
+        // Check whether robots are touching the box
+        // Number of ticks touching the box, maximum of ticksTouchingMaximum per robot
+        if(robot1.isInContact(box) && ticksTouching1 < ticksTouchingMaximum)
+        	ticksTouching1++;
+        if(robot2.isInContact(box) && ticksTouching2 < ticksTouchingMaximum)
+        	ticksTouching2++;
+        if(robot3.isInContact(box) && ticksTouching3 < ticksTouchingMaximum)
+        	ticksTouching3++;
+        System.out.println("ticksTouching: "+ticksTouching1+"\t"+ticksTouching2+"\t"+ticksTouching3);
+        
+        System.out.println("fitness: "+calculateFitness());
+	}
+	
+	public double calculateFitness() {
+		if(goalDist > 3.5)
+			return (ticksTouching1+ticksTouching2+ticksTouching3)/300.0/3.0;
+		else if(goalDist > 0.0)
+			return Math.min(1,1-goalDist/3.5)/3.0 + 1.0/3.0;
+		else
+			return Math.max(0,1-tickCount*1.0/tickCountMaximum)/3.0 + 2.0/3.0;
 	}
 	
 	public static void main(String[] args) {
