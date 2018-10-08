@@ -183,11 +183,14 @@ public class Thrust extends SimulationFrame {
         // Rough goal calculations
         final Vector2 boxCenter = box.getWorldCenter();
         double distTobox = boxCenter.distance(c) - 1.82;
-        g.draw(new Rectangle2D.Double(-150.0, -220.0, 300.0, 100.0));
-        if(boxCenter.x < 0.5 && boxCenter.x > -0.5 && boxCenter.y < -1.5 && boxCenter.y > -2.5)
+        Rectangle2D goal = new Rectangle2D.Double(-5.0, -220.0, 10.0, 10.0);
+        g.draw(goal);
+        
+        //if(boxCenter.x < 0.5 && boxCenter.x > -0.5 && boxCenter.y < -1.5 && boxCenter.y > -2.5)
+        if(box.contains(new Vector2(0.0,-3.5)))
         	System.out.println("In goal!!!");
         else
-            System.out.println("Goal Dist: "+box.getWorldCenter().distance(0.0, -2.0)+"      \trobotboxDist: "+distTobox);
+            System.out.println("Goal Dist: "+box.getWorldCenter().distance(0.0, -3.5)+"      \trobotboxDist: "+distTobox);
         
         // Spacebar emergency stop key
         if (this.stop.get()) {
