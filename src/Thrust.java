@@ -13,6 +13,9 @@ import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Vector2;
 
 public class Thrust extends SimulationFrame {
+	// Time scale to fast forward the simulation
+	private final static double timeScale = 1.0;
+	
 	/** The controlled robot */
 	private Robot robot1;
 	private Robot robot2;
@@ -25,6 +28,7 @@ public class Thrust extends SimulationFrame {
 	private Box box;
 	private double goalDist;
 	private long tickCount = 0;
+	private double bestFitness = 0;
 	
 	// Some booleans to indicate that a key is pressed
 	
@@ -119,7 +123,7 @@ public class Thrust extends SimulationFrame {
 	}
 	
 	public Thrust() {
-		super("Thrust", 64.0);
+		super("Thrust", 64.0, timeScale);
 		
 		KeyListener listener = new CustomKeyListener();
 		this.addKeyListener(listener);
@@ -181,7 +185,7 @@ public class Thrust extends SimulationFrame {
 	protected void update(Graphics2D g, double elapsedTime) {
 		super.update(g, elapsedTime);
 		
-		tickCount++;
+		tickCount += timeScale;
 		System.out.println("tickCount: "+tickCount);
 		
 		final double scale = this.scale;
@@ -284,7 +288,10 @@ public class Thrust extends SimulationFrame {
         	ticksTouching3++;
         System.out.println("ticksTouching: "+ticksTouching1+"\t"+ticksTouching2+"\t"+ticksTouching3);
         
-        System.out.println("fitness: "+calculateFitness());
+        double fitness = calculateFitness();
+        if(fitness > bestFitness)
+        	bestFitness = fitness;
+        System.out.println("fitness: "+fitness+"\tBest: "+bestFitness);
 	}
 	
 	public double calculateFitness() {

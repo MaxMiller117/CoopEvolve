@@ -71,6 +71,8 @@ public abstract class SimulationFrame extends JFrame {
 	/** The time stamp for the last iteration */
 	private long last;
 	
+	private final double timeScale;
+	
 	/**
 	 * Constructor.
 	 * <p>
@@ -78,8 +80,10 @@ public abstract class SimulationFrame extends JFrame {
 	 * @param name the frame name
 	 * @param scale the pixels per meter scale factor
 	 */
-	public SimulationFrame(String name, double scale) {
+	public SimulationFrame(String name, double scale, double timeScale) {
 		super(name);
+		
+		this.timeScale = timeScale;
 		
 		// set the scale
 		this.scale = scale;
@@ -190,7 +194,7 @@ public abstract class SimulationFrame extends JFrame {
         // set the last time
         this.last = time;
     	// convert from nanoseconds to seconds
-    	double elapsedTime = (double)diff / NANO_TO_BASE;
+    	double elapsedTime = (double)diff / NANO_TO_BASE * timeScale;
 		
 		// render anything about the simulation (will render the World objects)
 		this.render(g, elapsedTime);

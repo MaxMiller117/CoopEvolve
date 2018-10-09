@@ -19,7 +19,8 @@ public class Box extends SimulationBody {
 		if (Math.abs(this.getLinearVelocity().getMagnitude()) > 0) {
         	Vector2 vel = this.getLinearVelocity();
         	double speed = vel.getMagnitudeSquared();
-        	double slowForce = Math.min(speed/1.0, force);
+        	//double slowForce = Math.min(speed/1.0, force);
+        	double slowForce = 0.4;
         	Vector2 f = vel.getNormalized().product(slowForce*-5.0);
         	Vector2 p = c.sum(r.product(-0.9));
     		this.applyForce(f);
@@ -35,8 +36,8 @@ public class Box extends SimulationBody {
         	if(this.getAngularVelocity() > 0.0)
         		positive = 1;
         	
-        	Vector2 f1 = r.product(force * 0.1 * positive).left();
-        	Vector2 f2 = r.product(force * 0.1 * positive).right();
+        	Vector2 f1 = r.product(force * 0.2 * positive).left();
+        	Vector2 f2 = r.product(force * 0.2 * positive).right();
         	Vector2 p1 = c.sum(r.product(0.9));
         	Vector2 p2 = c.sum(r.product(-0.9));
         	
