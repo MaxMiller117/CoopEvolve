@@ -7,6 +7,13 @@ import org.dyn4j.geometry.Vector2;
 // These robots continue to run the last command given to them
 public class Robot extends SimulationBody {
 	final double force = 0.6;
+	private double motorEncoderLeft;
+	private double motorEncoderRight;
+	private Vector2 leftWheelLastPosition;
+	private Vector2 rightWheelLastPosition;
+	final Vector2 leftWheelLocalPoint = new Vector2(-0.3875,0.4); // Rough estimate
+	final Vector2 rightWheelLocalPoint = new Vector2(0.3875,0.4); // Need to measure
+	final double wheelConversionRate = Math.PI * 2.0; // Also need to measure, this number isn't correct at all, just a placeholder
 	
 	// Command options
 	public Robot() {
@@ -15,6 +22,8 @@ public class Robot extends SimulationBody {
 		//BodyFixture bf2 = this.addFixture(Geometry.createEquilateralTriangle(0.5), 1, 0.2, 0.2);
 		//bf2.getShape().translate(0, 0.9);
 		this.setMass(MassType.NORMAL);
+		motorEncoderLeft = 0.0;
+		motorEncoderRight = 0.0;
 	}
 	public void stop() {
 		this.setLinearVelocity(0.0,0.0);
@@ -130,5 +139,27 @@ public class Robot extends SimulationBody {
 	        	this.setAngularVelocity(avel);
 	        }
         }
+	}
+	
+	public void updateEncoders() {
+		Vector2 leftWheelNewPosition = this.getWorldPoint(leftWheelLocalPoint);
+		Vector2 rightWheelNewPosition = this.getWorldPoint(rightWheelLocalPoint);
+		
+		if(leftWheelLastPosition != null) {
+			double distance = leftWheelNewPosition.distance(leftWheelLastPosition);
+			motorEncoderLeft += distance * wheelConversionRate;
+		}
+		if(rightWheelLastPosition != null) {
+			double distance = rightWheelNewPosition.distance(rightWheelLastPosition);
+			motorEncoderRight += distance * wheelConversionRate;
+		}
+		leftWheelLastPosition = leftWheelNewPosition;
+		rightWheelLastPosition = rightWheelNewPosition;
+	}
+	public double getLeftEncoder() {
+		return motorEncoderLeft;
+	}
+	public double getRightEncoder() {
+		return motorEncoderRight;
 	}
 }

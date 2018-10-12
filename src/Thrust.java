@@ -278,6 +278,12 @@ public class Thrust extends SimulationFrame {
         box.angularStopMoving();
         box.limitSpeed(true);
         
+        robot1.updateEncoders();
+        robot2.updateEncoders();
+        robot3.updateEncoders();
+        
+        System.out.println("Robot 1 Encoders: "+robot1.getLeftEncoder()+"\t"+robot1.getRightEncoder());
+        
         // Check whether robots are touching the box
         // Number of ticks touching the box, maximum of ticksTouchingMaximum per robot
         if(robot1.isInContact(box) && ticksTouching1 < ticksTouchingMaximum)
