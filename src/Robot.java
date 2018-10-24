@@ -14,7 +14,8 @@ public class Robot extends SimulationBody {
 	final Vector2 leftWheelLocalPoint = new Vector2(-0.23125,0.021875); 
 	final Vector2 rightWheelLocalPoint = new Vector2(0.23125,0.021875);
 	final double wheelRadius = 0.13125;
-	final double wheelConversionRate = Math.PI*wheelRadius*wheelRadius*360.0;
+	final double wheelCircumference = 2*Math.PI*wheelRadius;
+	final double wheelConversionRate = 360.0/wheelCircumference;
 	
 	// Command options
 	public Robot() {
