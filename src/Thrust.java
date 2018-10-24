@@ -30,6 +30,8 @@ public class Thrust extends SimulationFrame {
 	private long tickCount = 0;
 	private double bestFitness = 0;
 	
+	public final boolean headless;
+	
 	// Some booleans to indicate that a key is pressed
 	
 	private AtomicBoolean forwardThrustOn1 = new AtomicBoolean(false);
@@ -122,8 +124,10 @@ public class Thrust extends SimulationFrame {
 		}
 	}
 	
-	public Thrust() {
+	public Thrust(boolean headless) {
 		super("Thrust", 64.0, timeScale);
+		
+		this.headless = headless;
 		
 		KeyListener listener = new CustomKeyListener();
 		this.addKeyListener(listener);
@@ -166,7 +170,7 @@ public class Thrust extends SimulationFrame {
 		
 		// Second robot
 		robot2 = new Robot();
-		robot2.translate(2.0, 2.0);
+		robot2.translate(0.0, 2.0);
 		this.world.addBody(robot2);
 		
 		// Third robot
@@ -310,7 +314,7 @@ public class Thrust extends SimulationFrame {
 	}
 	
 	public static void main(String[] args) {
-		Thrust simulation = new Thrust();
+		Thrust simulation = new Thrust(false);
 		simulation.run();
 	}
 }
