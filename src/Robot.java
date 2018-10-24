@@ -11,9 +11,9 @@ public class Robot extends SimulationBody {
 	private double motorEncoderRight;
 	private Vector2 leftWheelLastPosition;
 	private Vector2 rightWheelLastPosition;
-	final Vector2 leftWheelLocalPoint = new Vector2(-0.3875,0.4); // Rough estimate
-	final Vector2 rightWheelLocalPoint = new Vector2(0.3875,0.4); // Need to measure
-	final double wheelRadius = (2.5+1.0/8.0)/2.0; // Diameter is 2.5 + 1/8
+	final Vector2 leftWheelLocalPoint = new Vector2(-0.23125,0.021875); 
+	final Vector2 rightWheelLocalPoint = new Vector2(0.23125,0.021875);
+	final double wheelRadius = 0.13125;
 	final double wheelConversionRate = Math.PI*wheelRadius*wheelRadius*360.0;
 	
 	// Command options
