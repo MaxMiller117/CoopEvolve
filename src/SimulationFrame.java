@@ -73,6 +73,8 @@ public abstract class SimulationFrame extends JFrame {
 	
 	private final double timeScale;
 	
+	public final boolean headless;
+	
 	/**
 	 * Constructor.
 	 * <p>
@@ -80,8 +82,10 @@ public abstract class SimulationFrame extends JFrame {
 	 * @param name the frame name
 	 * @param scale the pixels per meter scale factor
 	 */
-	public SimulationFrame(String name, double scale, double timeScale) {
+	public SimulationFrame(String name, double scale, double timeScale, boolean headless) {
 		super(name);
+		
+		this.headless = headless;
 		
 		this.timeScale = timeScale;
 		
@@ -197,7 +201,8 @@ public abstract class SimulationFrame extends JFrame {
     	double elapsedTime = (double)diff / NANO_TO_BASE * timeScale;
 		
 		// render anything about the simulation (will render the World objects)
-		this.render(g, elapsedTime);
+    	if(!headless)
+    		this.render(g, elapsedTime);
         
 		if (!paused) {
 	        // update the World
@@ -326,7 +331,7 @@ public abstract class SimulationFrame extends JFrame {
 	}
 	
 	/**
-	 * Starts the simulation.
+	 * Starts the simulation. Returns fitness
 	 */
 	public void run() {
 		// set the look and feel to the system look and feel

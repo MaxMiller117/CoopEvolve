@@ -30,8 +30,6 @@ public class Thrust extends SimulationFrame {
 	private long tickCount = 0;
 	private double bestFitness = 0;
 	
-	public final boolean headless;
-	
 	// Some booleans to indicate that a key is pressed
 	
 	private AtomicBoolean forwardThrustOn1 = new AtomicBoolean(false);
@@ -125,9 +123,7 @@ public class Thrust extends SimulationFrame {
 	}
 	
 	public Thrust(boolean headless) {
-		super("Thrust", 64.0, timeScale);
-		
-		this.headless = headless;
+		super("Thrust", 64.0, timeScale,headless);
 		
 		KeyListener listener = new CustomKeyListener();
 		this.addKeyListener(listener);
@@ -272,9 +268,9 @@ public class Thrust extends SimulationFrame {
         
         robot2.driveBackward(); //***Hotwired into reverse for testing.
         
-        robot2.linearStopMoving();
-        robot2.angularStopMoving();
-        robot2.limitSpeed(true);
+        //robot2.linearStopMoving();
+        //robot2.angularStopMoving();
+        //robot2.limitSpeed(true);
         
         robot3.linearStopMoving();
         robot3.angularStopMoving();
@@ -316,7 +312,7 @@ public class Thrust extends SimulationFrame {
 	}
 	
 	public static void main(String[] args) {
-		Thrust simulation = new Thrust(false);
+		Thrust simulation = new Thrust(true);
 		simulation.run();
 	}
 }
