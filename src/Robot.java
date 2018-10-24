@@ -13,7 +13,8 @@ public class Robot extends SimulationBody {
 	private Vector2 rightWheelLastPosition;
 	final Vector2 leftWheelLocalPoint = new Vector2(-0.3875,0.4); // Rough estimate
 	final Vector2 rightWheelLocalPoint = new Vector2(0.3875,0.4); // Need to measure
-	final double wheelConversionRate = Math.PI * 2.0; // Also need to measure, this number isn't correct at all, just a placeholder
+	final double wheelRadius = 0.5;
+	final double wheelConversionRate = Math.PI*wheelRadius*wheelRadius*360.0; // Also need to measure, this number isn't correct at all, just a placeholder
 	
 	// Command options
 	public Robot() {
