@@ -270,6 +270,8 @@ public class Thrust extends SimulationFrame {
         	robot1.angularStopMoving();
         robot1.limitSpeed(noKey1.get());
         
+        robot2.driveBackward(); //***Hotwired into reverse for testing.
+        
         robot2.linearStopMoving();
         robot2.angularStopMoving();
         robot2.limitSpeed(true);
