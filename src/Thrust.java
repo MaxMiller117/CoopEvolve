@@ -300,6 +300,10 @@ public class Thrust extends SimulationFrame {
         if(fitness > bestFitness)
         	bestFitness = fitness;
         System.out.println("fitness: "+fitness+"\tBest: "+bestFitness);
+        
+        if(tickCount >= tickCountMaximum)
+        	stop();
+
 	}
 	
 	public double calculateFitness() {
@@ -309,6 +313,10 @@ public class Thrust extends SimulationFrame {
 			return Math.min(1,1-goalDist/3.5)/3.0 + 1.0/3.0;
 		else
 			return Math.max(0,1-tickCount*1.0/tickCountMaximum)/3.0 + 2.0/3.0;
+	}
+	
+	public double getBestFitness() {
+		return bestFitness;
 	}
 	
 	public static void main(String[] args) {
