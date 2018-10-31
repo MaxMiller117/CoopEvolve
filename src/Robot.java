@@ -31,6 +31,19 @@ public class Robot extends SimulationBody {
 		this.setLinearVelocity(0.0,0.0);
     	this.setAngularVelocity(0.0);
 	}
+	
+	// Converts integers from NNs into commands
+	public void doActionByIndex(int command) {
+		switch(command) {
+		case 0: driveForward(); angularStopMoving(); limitSpeed(false); break;
+		case 1: driveBackward(); angularStopMoving(); limitSpeed(false); break;
+		case 2: driveLeft(); linearStopMoving(); limitSpeed(false); break;
+		case 3: driveRight(); linearStopMoving(); limitSpeed(false); break;
+		case 4: doNothing(); linearStopMoving(); angularStopMoving(); limitSpeed(true); break;
+		default: System.out.println("Unrecognized command: "+command); break;
+		}
+	}
+	
 	public void driveForward() {
 		final Vector2 r = new Vector2(this.getTransform().getRotation() + Math.PI * 0.5);
         final Vector2 c = this.getWorldCenter();
@@ -76,6 +89,9 @@ public class Robot extends SimulationBody {
     	this.applyForce(f1, p1);
     	// apply a force to the bottom going right
     	this.applyForce(f2, p2);
+	}
+	public void doNothing() {
+		
 	}
 	public void linearStopMoving() {
 		final Vector2 r = new Vector2(this.getTransform().getRotation() + Math.PI * 0.5);

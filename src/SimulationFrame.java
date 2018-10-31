@@ -348,7 +348,8 @@ public abstract class SimulationFrame extends JFrame {
 		}
 		
 		// show it
-		this.setVisible(true);
+		if(!headless)
+			this.setVisible(true);
 		
 		// start it
 		this.start();

@@ -5,6 +5,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Collection;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.dyn4j.dynamics.BodyFixture;
@@ -12,9 +16,19 @@ import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Vector2;
 
+import jNeatCommon.EnvConstant;
+import jNeatCommon.EnvRoutine;
+import jNeatCommon.IOseq;
+import jneat.Genome;
+import jneat.NNode;
+import jneat.Network;
+
 public class Thrust extends SimulationFrame {
 	// Time scale to fast forward the simulation
 	private final static double timeScale = 1.0;
+	
+	// The walls
+	private SimulationBody l,r,t,b;
 	
 	/** The controlled robot */
 	private Robot robot1;
@@ -30,6 +44,8 @@ public class Thrust extends SimulationFrame {
 	private long tickCount = 0;
 	private double bestFitness = 0;
 	
+	private Network net;
+	
 	// Some booleans to indicate that a key is pressed
 	
 	private AtomicBoolean forwardThrustOn1 = new AtomicBoolean(false);
@@ -43,6 +59,8 @@ public class Thrust extends SimulationFrame {
 	private AtomicBoolean stop = new AtomicBoolean(false);
 	private AtomicBoolean noKey1 = new AtomicBoolean(false);
 	private AtomicBoolean noKey2 = new AtomicBoolean(false);
+	
+	private boolean disqualified = false;
 	
 	private class CustomKeyListener extends KeyAdapter {
 		@Override
@@ -122,12 +140,14 @@ public class Thrust extends SimulationFrame {
 		}
 	}
 	
-	public Thrust(boolean headless) {
+	public Thrust(boolean headless,Network net) {
 		super("Thrust", 64.0, timeScale,headless);
 		
 		KeyListener listener = new CustomKeyListener();
 		this.addKeyListener(listener);
 		this.canvas.addKeyListener(listener);
+		
+		this.net = net;
 	}
 	
 	// Start world, create objects, and add objects to world
@@ -135,25 +155,25 @@ public class Thrust extends SimulationFrame {
 		this.world.setGravity(new Vector2(0, 0));
 		
 		// Walls of the simulation
-		SimulationBody l = new SimulationBody();
+		l = new SimulationBody();
 		l.addFixture(Geometry.createRectangle(1, 15));
 		l.translate(-5, 0);
 		l.setMass(MassType.INFINITE);
 		this.world.addBody(l);
 		
-		SimulationBody r = new SimulationBody();
+		r = new SimulationBody();
 		r.addFixture(Geometry.createRectangle(1, 15));
 		r.translate(5, 0);
 		r.setMass(MassType.INFINITE);
 		this.world.addBody(r);
 		
-		SimulationBody t = new SimulationBody();
+		t = new SimulationBody();
 		t.addFixture(Geometry.createRectangle(15, 1));
 		t.translate(0, 5);
 		t.setMass(MassType.INFINITE);
 		this.world.addBody(t);
 		
-		SimulationBody b = new SimulationBody();
+		b = new SimulationBody();
 		b.addFixture(Geometry.createRectangle(15, 1));
 		b.translate(0, -5);
 		b.setMass(MassType.INFINITE);
@@ -178,6 +198,18 @@ public class Thrust extends SimulationFrame {
 		box = new Box();
 		box.translate(-1.0, 0.0);
 		this.world.addBody(box);
+	}
+	
+	// Gets the most confident output from a vector of neural network outputs
+	public int getMostConfident(List<Double> outputs) {
+		Double highest = outputs.get(0);
+		int highestIndex = 0;
+		for(int i=1;i<outputs.size();i++)
+			if(outputs.get(i) > highest) {
+				highest = outputs.get(i);
+				highestIndex = i;
+			}
+		return highestIndex;
 	}
 	
 	// Things to do every simulation tick
@@ -214,72 +246,104 @@ public class Thrust extends SimulationFrame {
         	robot2.stop();
         }
         
-		// Apply linear thrust
-        // Drive forward
-        if (this.forwardThrustOn1.get())
-        	robot1.driveForward();
-        // Drive backward
-        else if (this.reverseThrustOn1.get())
-        	robot1.driveBackward();
-        // Slow down by default
+        if(net != null) {
+			double[] inputs = {
+			robot1.getLeftEncoder(),
+			robot1.getRightEncoder(),
+			robot2.getLeftEncoder(),
+			robot2.getRightEncoder(),
+			robot3.getLeftEncoder(),
+			robot3.getRightEncoder()};
+			net.load_sensors(inputs);
+			
+			net.activate();
+			for(int relax=0;relax<=net.max_depth();relax++)
+				net.activate();
+			
+			Vector<NNode> outputNNodes = net.getOutputs();
+			Vector<Double> outputs = new Vector<Double>();
+			for(NNode node : outputNNodes) {
+				outputs.add(node.getActivation());
+			}
+			
+			net.flush();
+			
+			System.out.println(inputs);
+			System.out.println(outputs);
+			// For now I'm choosing the highest confidence option for each of the 3 robots
+			robot1.doActionByIndex(getMostConfident(outputs.subList(0,5)));
+			robot2.doActionByIndex(getMostConfident(outputs.subList(5,10)));
+			robot3.doActionByIndex(getMostConfident(outputs.subList(10,15)));
+		}
         else {
-        	robot1.linearStopMoving();
+        	// Apply linear thrust
+            // Drive forward
+            if (this.forwardThrustOn1.get())
+            	robot1.driveForward();
+            // Drive backward
+            else if (this.reverseThrustOn1.get())
+            	robot1.driveBackward();
+            // Slow down by default
+            else {
+            	robot1.linearStopMoving();
+            }
+            
+            // Apply angular thrust
+            // Turn left
+            if (this.leftThrustOn1.get()) {
+            	robot1.driveLeft();
+            }
+            // Turn right
+            else if (this.rightThrustOn1.get()) {
+            	robot1.driveRight();
+            }
+            // Slow down by default
+            else {
+            	robot1.angularStopMoving();
+            }
+            // Maximum speed limiting and Minimum speed limiting
+            robot1.limitSpeed(noKey1.get());
+            
+            // Apply linear thrust
+            // Drive forward
+            if (this.forwardThrustOn1.get())
+            	robot1.driveForward();
+            // Drive backward
+            else if (this.reverseThrustOn1.get())
+            	robot1.driveBackward();
+            // Slow down by default
+            else {
+            	robot1.linearStopMoving();
+            }
+            
+            // Apply angular thrust
+            // Turn left
+            if (this.leftThrustOn1.get()) {
+            	robot1.driveLeft();
+            }
+            // Turn right
+            else if (this.rightThrustOn1.get())
+            	robot1.driveRight();
+            else
+            	robot1.angularStopMoving();
+            robot1.limitSpeed(noKey1.get());
+            
+            robot2.driveBackward(); //***Hotwired into reverse for testing.
+            
+            //robot2.linearStopMoving();
+            //robot2.angularStopMoving();
+            //robot2.limitSpeed(true);
+            
+            robot3.linearStopMoving();
+            robot3.angularStopMoving();
+            robot3.limitSpeed(true);
+            
+            box.linearStopMoving();
+            box.angularStopMoving();
+            box.limitSpeed(true);
         }
         
-        // Apply angular thrust
-        // Turn left
-        if (this.leftThrustOn1.get()) {
-        	robot1.driveLeft();
-        }
-        // Turn right
-        else if (this.rightThrustOn1.get()) {
-        	robot1.driveRight();
-        }
-        // Slow down by default
-        else {
-        	robot1.angularStopMoving();
-        }
-        // Maximum speed limiting and Minimum speed limiting
-        robot1.limitSpeed(noKey1.get());
-        
-     // Apply linear thrust
-        // Drive forward
-        if (this.forwardThrustOn1.get())
-        	robot1.driveForward();
-        // Drive backward
-        else if (this.reverseThrustOn1.get())
-        	robot1.driveBackward();
-        // Slow down by default
-        else {
-        	robot1.linearStopMoving();
-        }
-        
-        // Apply angular thrust
-        // Turn left
-        if (this.leftThrustOn1.get()) {
-        	robot1.driveLeft();
-        }
-        // Turn right
-        else if (this.rightThrustOn1.get())
-        	robot1.driveRight();
-        else
-        	robot1.angularStopMoving();
-        robot1.limitSpeed(noKey1.get());
-        
-        robot2.driveBackward(); //***Hotwired into reverse for testing.
-        
-        //robot2.linearStopMoving();
-        //robot2.angularStopMoving();
-        //robot2.limitSpeed(true);
-        
-        robot3.linearStopMoving();
-        robot3.angularStopMoving();
-        robot3.limitSpeed(true);
-        
-        box.linearStopMoving();
-        box.angularStopMoving();
-        box.limitSpeed(true);
-        
+        // Update robot encoders
         robot1.updateEncoders();
         robot2.updateEncoders();
         robot3.updateEncoders();
@@ -296,6 +360,9 @@ public class Thrust extends SimulationFrame {
         	ticksTouching3++;
         System.out.println("ticksTouching: "+ticksTouching1+"\t"+ticksTouching2+"\t"+ticksTouching3);
         
+        if(anyWallContact())
+        	disqualified = true;
+        
         double fitness = calculateFitness();
         if(fitness > bestFitness)
         	bestFitness = fitness;
@@ -306,7 +373,31 @@ public class Thrust extends SimulationFrame {
 
 	}
 	
+	public boolean anyWallContact() {
+		if(wallContact(robot1))
+			return true;
+		if(wallContact(robot2))
+			return true;
+		if(wallContact(robot3))
+			return true;
+		return false;
+	}
+	public boolean wallContact(Robot robotN) {
+		if(robotN.isInContact(l))
+			return true;
+		if(robotN.isInContact(r))
+			return true;
+		if(robotN.isInContact(t))
+			return true;
+		if(robotN.isInContact(b))
+			return true;
+		return false;
+	}
+	
 	public double calculateFitness() {
+		if(disqualified)
+			return 0.0;
+		
 		if(goalDist > 3.5)
 			return (ticksTouching1+ticksTouching2+ticksTouching3)/300.0/3.0;
 		else if(goalDist > 0.0)
@@ -320,7 +411,37 @@ public class Thrust extends SimulationFrame {
 	}
 	
 	public static void main(String[] args) {
-		Thrust simulation = new Thrust(true);
+		Network net = readGenomeFromFile();
+		Thrust simulation = new Thrust(false,net);
 		simulation.run();
+		while(!simulation.isStopped()) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		System.out.println("Final best fitness: "+simulation.getBestFitness());
+		simulation.dispose();
+	}
+	
+	// Adapted from code in Generation.java
+	public static Network readGenomeFromFile() {
+		System.out.println(EnvRoutine.getJneatFileData(EnvConstant.NAME_GENOMEA));
+		String path = "C:\\Users\\MaxMi\\Documents\\GitHub\\CoopEvolve\\src\\genomeNew";
+		IOseq xFile = new IOseq(path);
+		boolean rc = xFile.IOseqOpenR();
+		
+		String xline = xFile.IOseqRead();
+		StringTokenizer st = new StringTokenizer(xline);
+		//skip 
+		String curword = st.nextToken();
+		//id of genome can be readed (sic)
+		curword = st.nextToken();
+		int id = Integer.parseInt(curword);
+		Genome u_genome = new Genome(id, xFile);
+		
+		return u_genome.genesis(0);
 	}
 }
