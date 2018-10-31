@@ -426,6 +426,22 @@ public class Thrust extends SimulationFrame {
 		simulation.dispose();
 	}
 	
+	public static double getBestFitnessHeadlessSim(Network net) {
+		Thrust simulation = new Thrust(true,net);
+		simulation.run();
+		while(!simulation.isStopped()) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		double best = simulation.getBestFitness();
+		simulation.dispose();
+		return best;
+	}
+	
 	// Adapted from code in Generation.java
 	public static Network readGenomeFromFile() {
 		System.out.println(EnvRoutine.getJneatFileData(EnvConstant.NAME_GENOMEA));
