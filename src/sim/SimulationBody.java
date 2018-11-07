@@ -1,4 +1,4 @@
-
+package sim;
 
 import java.awt.Color;
 import java.awt.Graphics2D;

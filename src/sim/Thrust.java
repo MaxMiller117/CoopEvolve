@@ -1,3 +1,5 @@
+package sim;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.KeyAdapter;
@@ -38,7 +40,7 @@ public class Thrust extends SimulationFrame {
 	private short ticksTouching2;
 	private short ticksTouching3;
 	final short ticksTouchingMaximum = 100;
-	final int tickCountMaximum = 5000;
+	final int tickCountMaximum = 1000;
 	private Box box;
 	private double goalDist;
 	private long tickCount = 0;
@@ -63,7 +65,6 @@ public class Thrust extends SimulationFrame {
 	private boolean disqualified = false;
 	
 	private class CustomKeyListener extends KeyAdapter {
-		@Override
 		public void keyPressed(KeyEvent e) {
 			switch (e.getKeyCode()) {
 				case KeyEvent.VK_W:
@@ -105,7 +106,6 @@ public class Thrust extends SimulationFrame {
 			noKey2.set(!(forwardThrustOn2.get() || reverseThrustOn2.get() || leftThrustOn2.get() || rightThrustOn2.get()));
 		}
 		
-		@Override
 		public void keyReleased(KeyEvent e) {
 			switch (e.getKeyCode()) {
 				case KeyEvent.VK_W:
@@ -234,11 +234,11 @@ public class Thrust extends SimulationFrame {
         
         goalDist = box.getWorldCenter().distance(0.0, -3.5);
         if(box.contains(new Vector2(0.0,-3.5))) {
-        	System.out.println("In goal!!!");
+        	//System.out.println("In goal!!!");
         	goalDist = 0.0;
         }
         else
-            System.out.println("Goal Dist: "+goalDist+"      \trobotboxDist: "+distTobox);
+            ;//System.out.println("Goal Dist: "+goalDist+"      \trobotboxDist: "+distTobox);
         
         // Spacebar emergency stop key
         if (this.stop.get()) {
@@ -268,7 +268,7 @@ public class Thrust extends SimulationFrame {
 			
 			net.flush();
 			
-			System.out.println(inputs);
+			//System.out.println(inputs);
 			System.out.println(outputs);
 			// For now I'm choosing the highest confidence option for each of the 3 robots
 			robot1.doActionByIndex(getMostConfident(outputs.subList(0,5)));
@@ -348,7 +348,7 @@ public class Thrust extends SimulationFrame {
         robot2.updateEncoders();
         robot3.updateEncoders();
         
-        System.out.println("Robot 1 Encoders: "+robot1.getLeftEncoder()+"\t"+robot1.getRightEncoder());
+        //System.out.println("Robot 1 Encoders: "+robot1.getLeftEncoder()+"\t"+robot1.getRightEncoder());
         
         // Check whether robots are touching the box
         // Number of ticks touching the box, maximum of ticksTouchingMaximum per robot
@@ -366,7 +366,7 @@ public class Thrust extends SimulationFrame {
         double fitness = calculateFitness();
         if(fitness > bestFitness)
         	bestFitness = fitness;
-        System.out.println("fitness: "+fitness+"\tBest: "+bestFitness);
+        //System.out.println("fitness: "+fitness+"\tBest: "+bestFitness);
         
         if(tickCount >= tickCountMaximum)
         	stop();
@@ -427,7 +427,10 @@ public class Thrust extends SimulationFrame {
 	}
 	
 	public static double getBestFitnessHeadlessSim(Network net) {
-		Thrust simulation = new Thrust(true,net);
+		return getBestFitnessSim(net,true);
+	}
+	public static double getBestFitnessSim(Network net,boolean head) {
+		Thrust simulation = new Thrust(head,net);
 		simulation.run();
 		while(!simulation.isStopped()) {
 			try {
