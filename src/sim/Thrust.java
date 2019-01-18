@@ -148,6 +148,8 @@ public class Thrust extends SimulationFrame {
 		this.canvas.addKeyListener(listener);
 		
 		this.net = net;
+		
+		//System.out.println("Starting sim... NetID="+net.getNet_id());
 	}
 	
 	// Start world, create objects, and add objects to world
@@ -218,7 +220,7 @@ public class Thrust extends SimulationFrame {
 		super.update(g, elapsedTime);
 		
 		tickCount += timeScale;
-		System.out.println("tickCount: "+tickCount);
+		//System.out.println("tickCount: "+tickCount);
 		
 		final double scale = this.scale;
 		final double force = 2.0;
@@ -269,7 +271,7 @@ public class Thrust extends SimulationFrame {
 			net.flush();
 			
 			//System.out.println(inputs);
-			System.out.println(outputs);
+			//System.out.println(outputs);
 			// For now I'm choosing the highest confidence option for each of the 3 robots
 			robot1.doActionByIndex(getMostConfident(outputs.subList(0,5)));
 			robot2.doActionByIndex(getMostConfident(outputs.subList(5,10)));
@@ -337,11 +339,10 @@ public class Thrust extends SimulationFrame {
             robot3.linearStopMoving();
             robot3.angularStopMoving();
             robot3.limitSpeed(true);
-            
-            box.linearStopMoving();
-            box.angularStopMoving();
-            box.limitSpeed(true);
         }
+        box.linearStopMoving();
+        box.angularStopMoving();
+        box.limitSpeed(true);
         
         // Update robot encoders
         robot1.updateEncoders();
@@ -358,7 +359,7 @@ public class Thrust extends SimulationFrame {
         	ticksTouching2++;
         if(robot3.isInContact(box) && ticksTouching3 < ticksTouchingMaximum)
         	ticksTouching3++;
-        System.out.println("ticksTouching: "+ticksTouching1+"\t"+ticksTouching2+"\t"+ticksTouching3);
+        //System.out.println("ticksTouching: "+ticksTouching1+"\t"+ticksTouching2+"\t"+ticksTouching3);
         
         if(anyWallContact())
         	disqualified = true;
@@ -396,8 +397,11 @@ public class Thrust extends SimulationFrame {
 	
 	public double calculateFitness() {
 		if(disqualified)
-			return 0.0;
-		
+			return calculateFitnessNoPenalties()-0.1;
+		return calculateFitnessNoPenalties();
+	}
+	
+	public double calculateFitnessNoPenalties() {
 		if(goalDist > 3.5)
 			return (ticksTouching1+ticksTouching2+ticksTouching3)/300.0/3.0;
 		else if(goalDist > 0.0)
@@ -412,7 +416,8 @@ public class Thrust extends SimulationFrame {
 	
 	public static void main(String[] args) {
 		Network net = readGenomeFromFile();
-		Thrust simulation = new Thrust(false,net);
+		//Thrust simulation = new Thrust(false,net);
+		Thrust simulation = new Thrust(false,null);
 		simulation.run();
 		while(!simulation.isStopped()) {
 			try {
