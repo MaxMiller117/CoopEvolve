@@ -8,9 +8,9 @@ public class Box extends SimulationBody {
 	final double force = 2.2;
 	public Box() {
 		super();
-		this.addFixture(Geometry.createRectangle(1.6, 1.2), // size
-				0.36925, 								  // density
-				0.08,									// friction
+		this.addFixture(Geometry.createRectangle(1.6, 1.2), // size 16" x 12"
+				0.26925, 								  // density
+				0.18,									// friction
 				0.49);									// restitution (bounciness)
 		this.setMass(MassType.NORMAL);
 	}
@@ -22,8 +22,8 @@ public class Box extends SimulationBody {
         	Vector2 vel = this.getLinearVelocity();
         	double speed = vel.getMagnitudeSquared();
         	//double slowForce = Math.min(speed/1.0, force);
-        	double slowForce = 0.4;
-        	Vector2 f = vel.getNormalized().product(slowForce*-5.0);
+        	double slowForce = 0.70;
+        	Vector2 f = vel.getNormalized().product(slowForce*-1.0);
         	Vector2 p = c.sum(r.product(-0.9));
     		this.applyForce(f);
 		}
@@ -38,8 +38,8 @@ public class Box extends SimulationBody {
         	if(this.getAngularVelocity() > 0.0)
         		positive = 1;
         	
-        	Vector2 f1 = r.product(force * 0.2 * positive).left();
-        	Vector2 f2 = r.product(force * 0.2 * positive).right();
+        	Vector2 f1 = r.product(force * 0.4 * positive).left();
+        	Vector2 f2 = r.product(force * 0.4 * positive).right();
         	Vector2 p1 = c.sum(r.product(0.9));
         	Vector2 p2 = c.sum(r.product(-0.9));
         	
@@ -68,8 +68,8 @@ public class Box extends SimulationBody {
         
         // If the speed gets too low, stop it to prevent the simulated friction from thrashing
         if(noKey) {
-	        double minLinV = 0.1;
-	        double minAngV = 0.1;
+	        double minLinV = 0.01;
+	        double minAngV = 0.05;
 	        if(vel.getMagnitude() < minLinV) {
 	        	vel.setMagnitude(0.0);
 	        	this.setLinearVelocity(vel);
