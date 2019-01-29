@@ -47,6 +47,7 @@ public class Thrust extends SimulationFrame {
 	private double bestFitness = 0;
 	
 	private Network net;
+	private Network net1,net2,net3;
 	
 	// Some booleans to indicate that a key is pressed
 	
@@ -141,7 +142,7 @@ public class Thrust extends SimulationFrame {
 	}
 	
 	public Thrust(boolean headless,Network net) {
-		super("Thrust", 64.0, timeScale,headless);
+		super("Thrust",64.0,timeScale,headless);
 		
 		KeyListener listener = new CustomKeyListener();
 		this.addKeyListener(listener);
@@ -150,6 +151,13 @@ public class Thrust extends SimulationFrame {
 		this.net = net;
 		
 		//System.out.println("Starting sim... NetID="+net.getNet_id());
+	}
+	public Thrust(boolean headless,Network net1,Network net2,Network net3,boolean communicate) {
+		super("Thrust",64.0,timeScale,headless);
+		
+		this.net1 = net1;
+		this.net2 = net2;
+		this.net3 = net3;
 	}
 	
 	// Start world, create objects, and add objects to world
@@ -247,7 +255,54 @@ public class Thrust extends SimulationFrame {
         	robot1.stop();
         	robot2.stop();
         }
-        
+        if(net1!= null && net2!=null && net3!=null) {
+        	double[] inputs1 = {
+        			robot1.getLeftEncoder(),
+        			robot1.getRightEncoder()};
+        	double[] inputs2 = {
+        			robot1.getLeftEncoder(),
+        			robot1.getRightEncoder()};
+        	double[] inputs3 = {
+        			robot1.getLeftEncoder(),
+        			robot1.getRightEncoder()};
+        	
+        	net1.load_sensors(inputs1);
+        	net2.load_sensors(inputs2);
+        	net3.load_sensors(inputs3);
+        	
+        	net1.activate();
+        	for(int relax=0;relax<=net1.max_depth();relax++)
+				net1.activate();
+        	net2.activate();
+        	for(int relax=0;relax<=net2.max_depth();relax++)
+				net2.activate();
+        	net3.activate();
+        	for(int relax=0;relax<=net3.max_depth();relax++)
+				net3.activate();
+        	
+        	Vector<NNode> outputNNodes1 = net1.getOutputs();
+        	Vector<NNode> outputNNodes2 = net2.getOutputs();
+        	Vector<NNode> outputNNodes3 = net3.getOutputs();
+        	
+			Vector<Double> outputs1 = new Vector<Double>();
+			Vector<Double> outputs2 = new Vector<Double>();
+			Vector<Double> outputs3 = new Vector<Double>();
+			
+			for(NNode node : outputNNodes1)
+				outputs1.add(node.getActivation());
+			for(NNode node : outputNNodes2)
+				outputs2.add(node.getActivation());
+			for(NNode node : outputNNodes3)
+				outputs3.add(node.getActivation());
+			
+			net1.flush();
+			net2.flush();
+			net3.flush();
+			
+			robot1.doActionByIndex(getMostConfident(outputs1));
+			robot2.doActionByIndex(getMostConfident(outputs2));
+			robot3.doActionByIndex(getMostConfident(outputs3));
+        }
         if(net != null) {
 			double[] inputs = {
 			robot1.getLeftEncoder(),
@@ -264,9 +319,8 @@ public class Thrust extends SimulationFrame {
 			
 			Vector<NNode> outputNNodes = net.getOutputs();
 			Vector<Double> outputs = new Vector<Double>();
-			for(NNode node : outputNNodes) {
+			for(NNode node : outputNNodes)
 				outputs.add(node.getActivation());
-			}
 			
 			net.flush();
 			
@@ -441,7 +495,22 @@ public class Thrust extends SimulationFrame {
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		double best = simulation.getBestFitness();
+		simulation.dispose();
+		return best;
+	}
+	
+	//
+	public static double getBestFitnessSim(Network net1,Network net2,Network net3,boolean head,boolean communicate) {
+		Thrust simulation = new Thrust(head,net1,net2,net3,communicate);
+		simulation.run();
+		while(!simulation.isStopped()) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
