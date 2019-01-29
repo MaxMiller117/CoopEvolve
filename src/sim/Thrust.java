@@ -48,6 +48,8 @@ public class Thrust extends SimulationFrame {
 	
 	private Network net;
 	private Network net1,net2,net3;
+	private double comm1,comm2,comm3;
+	private boolean communicate;
 	
 	// Some booleans to indicate that a key is pressed
 	
@@ -158,6 +160,14 @@ public class Thrust extends SimulationFrame {
 		this.net1 = net1;
 		this.net2 = net2;
 		this.net3 = net3;
+		
+		this.communicate = communicate;
+		
+		if(communicate) {
+			comm1=0.0;
+			comm2=0.0;
+			comm3=0.0;
+		}
 	}
 	
 	// Start world, create objects, and add objects to world
@@ -255,7 +265,64 @@ public class Thrust extends SimulationFrame {
         	robot1.stop();
         	robot2.stop();
         }
-        if(net1!= null && net2!=null && net3!=null) {
+        if(net1!= null && net2!=null && net3!=null && communicate) {
+        	double[] inputs1 = {
+        			robot1.getLeftEncoder(),
+        			robot1.getRightEncoder(),
+        			comm2,
+        			comm3};
+        	double[] inputs2 = {
+        			robot1.getLeftEncoder(),
+        			robot1.getRightEncoder(),
+        			comm1,
+        			comm3};
+        	double[] inputs3 = {
+        			robot1.getLeftEncoder(),
+        			robot1.getRightEncoder(),
+        			comm1,
+        			comm2};
+        	
+        	net1.load_sensors(inputs1);
+        	net2.load_sensors(inputs2);
+        	net3.load_sensors(inputs3);
+        	
+        	net1.activate();
+        	for(int relax=0;relax<=net1.max_depth();relax++)
+				net1.activate();
+        	net2.activate();
+        	for(int relax=0;relax<=net2.max_depth();relax++)
+				net2.activate();
+        	net3.activate();
+        	for(int relax=0;relax<=net3.max_depth();relax++)
+				net3.activate();
+        	
+        	Vector<NNode> outputNNodes1 = net1.getOutputs();
+        	Vector<NNode> outputNNodes2 = net2.getOutputs();
+        	Vector<NNode> outputNNodes3 = net3.getOutputs();
+        	
+			Vector<Double> outputs1 = new Vector<Double>();
+			Vector<Double> outputs2 = new Vector<Double>();
+			Vector<Double> outputs3 = new Vector<Double>();
+			
+			for(NNode node : outputNNodes1)
+				outputs1.add(node.getActivation());
+			for(NNode node : outputNNodes2)
+				outputs2.add(node.getActivation());
+			for(NNode node : outputNNodes3)
+				outputs3.add(node.getActivation());
+			
+			net1.flush();
+			net2.flush();
+			net3.flush();
+			
+			robot1.doActionByIndex(getMostConfident(outputs1.subList(0,5)));
+			comm1 = outputs1.get(5);
+			robot2.doActionByIndex(getMostConfident(outputs2.subList(0,5)));
+			comm2 = outputs2.get(5);
+			robot3.doActionByIndex(getMostConfident(outputs3.subList(0,5)));
+			comm3 = outputs3.get(5);
+        }
+        else if(net1!= null && net2!=null && net3!=null) {
         	double[] inputs1 = {
         			robot1.getLeftEncoder(),
         			robot1.getRightEncoder()};
@@ -303,7 +370,7 @@ public class Thrust extends SimulationFrame {
 			robot2.doActionByIndex(getMostConfident(outputs2));
 			robot3.doActionByIndex(getMostConfident(outputs3));
         }
-        if(net != null) {
+        else if(net != null) {
 			double[] inputs = {
 			robot1.getLeftEncoder(),
 			robot1.getRightEncoder(),
