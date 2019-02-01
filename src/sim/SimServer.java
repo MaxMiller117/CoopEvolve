@@ -6,7 +6,9 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 public class SimServer extends SimHandler{
-	public SimServer() {}
+	public SimServer() {
+		super();
+	}
 	public static void main(String args[]) {
 		try {
 			SimHandler simObject = new SimHandler();
