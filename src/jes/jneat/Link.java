@@ -1,12 +1,13 @@
 
    package jneat;
 
+import java.io.Serializable;
 
-	        /**
+/**
  * Link is a connection from one node to another with an associated weight; It can be marked as recurrent;
  * Its parameters are made public for efficiency.
  */
-	public class Link extends Neat {
+	public class Link extends Neat implements Serializable {
    /** is a real value of weight of connection(link) */
 	  double weight;
    /** is a reference to an  input node */
