@@ -2,8 +2,7 @@
 
    package jneat;
 
-   import java.io.Serializable;
-import java.util.*;
+   import java.util.*;
 
    import jNeatCommon.*;
 

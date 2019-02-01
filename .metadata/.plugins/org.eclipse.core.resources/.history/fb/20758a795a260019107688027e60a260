@@ -2,12 +2,10 @@
 
    package jneat;
 
-   import java.io.Serializable;
-import java.util.*;
+   import java.util.*;
 
    import jNeatCommon.*;
-
-   public class Network extends Neat implements Serializable {
+																																public class Network extends Neat {
    /**
    * Is a collection of object NNode can be mapped in a Vector container;
    * this collection represent a group of references to input nodes;
