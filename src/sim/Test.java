@@ -16,6 +16,7 @@ public class Test {
 			 "192.168.101.21"
 		 };
 		 final int port = 1099;
+		 final int population = 250;
 		 try {
 			//System.setProperty("java.security.policy","file:./test.policy");
 			System.setProperty("java.security.policy","file:/C:/Users/MaxMi/Documents/GitHub/CoopEvolve/src/test.policy");
@@ -44,14 +45,21 @@ public class Test {
 			
 			//System.out.println(stub.printMsg());
 			
-			Scanner sc = new Scanner(System.in);
-			int N = sc.nextInt();
-			Network input=Thrust.readGenomeFromFile();
+			//Scanner sc = new Scanner(System.in);
+			//int N = sc.nextInt();
+			
+			Network[] networkList = new Network[population];
+			for(int i=0;i<networkList.length;i++) {
+				Network input=Thrust.readGenomeFromFile();
+				input.setNet_id(i);
+				networkList[i]=input;
+			}
+			
 			long startTime = System.currentTimeMillis();
-			for(int i=0;i<N;i++) {
+			for(int i=0;i<networkList.length;i++) {
 				boolean success = false;
 				while(!success) {
-					success = submitToServer(input,stubList);
+					success = submitToServer(networkList[i],stubList);
 					if(!success) {
 						//System.out.println("Failing to add input to queue: "+input);
 						Thread.sleep(50);

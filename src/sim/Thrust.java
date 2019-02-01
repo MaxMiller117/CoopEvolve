@@ -589,7 +589,8 @@ public class Thrust extends SimulationFrame {
 	// Adapted from code in Generation.java
 	public static Network readGenomeFromFile() {
 		System.out.println(EnvRoutine.getJneatFileData(EnvConstant.NAME_GENOMEA));
-		String path = "C:\\Users\\MaxMi\\Documents\\GitHub\\CoopEvolve\\src\\genomeNew";
+		//String path = "C:\\Users\\MaxMi\\Documents\\GitHub\\CoopEvolve\\src\\genomeNew";
+		String path = "C:\\Users\\MaxMi\\Documents\\GitHub\\CoopEvolve\\data\\xwinner52_111";
 		IOseq xFile = new IOseq(path);
 		boolean rc = xFile.IOseqOpenR();
 		
