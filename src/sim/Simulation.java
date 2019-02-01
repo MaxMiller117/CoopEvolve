@@ -17,4 +17,5 @@ public interface Simulation extends Remote {
 	ArrayList<Double> getAllResults() throws RemoteException;
 	boolean isIdle() throws RemoteException;
 	String status() throws RemoteException;
+	boolean isBacklogged() throws RemoteException;
 }

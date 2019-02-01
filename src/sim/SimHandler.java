@@ -11,7 +11,7 @@ public class SimHandler implements Simulation {
 	ArrayList<Integer> running = new ArrayList<Integer>();
 	ArrayList<Double> results = new ArrayList<Double>();
 	
-	final int maxBacklog = 10;
+	final int maxBacklog = 1;
 	final int numThreads = 8;
 	Thread[] threads = new Thread[numThreads];
 	
@@ -118,5 +118,8 @@ public class SimHandler implements Simulation {
 	}
 	public String status() {
 		return "Queue: "+queue.size()+"     Status: "+running.size()+"     Results: "+results.size();
+	}
+	public boolean isBacklogged(){
+		return queue.size() >= maxBacklog;
 	}
 }
