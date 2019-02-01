@@ -3,8 +3,7 @@
 
    package jneat;
 
-   import java.io.Serializable;
-import java.util.*;
+   import java.util.*;
    import jNeatCommon.*;
 /**
  * A Trait is a group of parameters that can be expressed
@@ -13,7 +12,7 @@ import java.util.*;
  * on every node.  Instead, each node can simply point to a trait
  * and those traits can evolve on their own
  */
-	public class Trait extends Neat implements Serializable {
+	public class Trait extends Neat {
    /**
    * Numeric identification of trait
    */

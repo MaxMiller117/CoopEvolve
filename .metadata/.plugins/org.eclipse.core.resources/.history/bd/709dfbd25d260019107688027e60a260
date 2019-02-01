@@ -3,11 +3,11 @@
    package jneat;
 
    import java.util.*;
-import java.io.Serializable;
-import java.text.*;
+
+   import java.text.*;
    import jNeatCommon.*;
 
-																public class Species extends Neat implements Serializable {
+																public class Species extends Neat {
    /**
    * id(-entification) of this species
    */
