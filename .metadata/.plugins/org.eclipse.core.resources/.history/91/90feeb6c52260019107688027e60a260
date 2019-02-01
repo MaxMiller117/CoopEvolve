@@ -11,8 +11,8 @@ public class SimHandler implements Simulation {
 	ArrayList<Integer> running = new ArrayList<Integer>();
 	ArrayList<Double> results = new ArrayList<Double>();
 	
-	final int maxBacklog = 16;
-	final int numThreads = 16;
+	final int maxBacklog = 1;
+	final int numThreads = 8;
 	Thread[] threads = new Thread[numThreads];
 	
 	public boolean hasRequest() {

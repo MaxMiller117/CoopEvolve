@@ -12,7 +12,7 @@ public class SimHandler implements Simulation {
 	ArrayList<Double> results = new ArrayList<Double>();
 	
 	final int maxBacklog = 16;
-	final int numThreads = 16;
+	final int numThreads = 32;
 	Thread[] threads = new Thread[numThreads];
 	
 	public boolean hasRequest() {
