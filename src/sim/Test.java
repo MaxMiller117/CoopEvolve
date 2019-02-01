@@ -45,19 +45,34 @@ public class Test {
 			Scanner sc = new Scanner(System.in);
 			int N = sc.nextInt();
 			int input;
+			long startTime = System.currentTimeMillis();
 			for(int i=0;i<N;i++) {
 				input = sc.nextInt();
-				while(!submitToServer(input,stubList))
-					System.out.println("Failing to process input: "+input);
+				boolean success = false;
+				while(!success) {
+					success = submitToServer(input,stubList);
+					if(!success) {
+						//System.out.println("Failing to add input to queue: "+input);
+						Thread.sleep(50);
+					}
+				}
 			}
+			long stopTimeInput = System.currentTimeMillis();
+			double elapsedTime = (stopTimeInput - startTime)/1000.0;
+			System.out.println("Input time took "+elapsedTime+"s");
 			System.out.println("Input over; waiting for results...");
 			for(Simulation stub:stubList)
 				while(!stub.isIdle()) {
-					System.out.println(stub.status());
+					//System.out.println(stub.status());
 					while(stub.hasResults())
-						System.out.println(stub.getResult());
+						nicerPrint(stub.getResult());
 					Thread.sleep(200);
 				}
+			long stopTime = System.currentTimeMillis();
+			elapsedTime = (stopTime - stopTimeInput)/1000.0;
+			System.out.println("Processing took "+elapsedTime+"s");
+			elapsedTime = (stopTime - startTime)/1000.0;
+			System.out.println("Total time "+elapsedTime+"s");
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -72,5 +87,10 @@ public class Test {
 				return true;
 			}
 		return false;
+	}
+	static void nicerPrint(Double x) {
+		int tID = (int)(x/100);
+		x = x%100;
+		System.out.println("Thread "+tID+" returned "+x+"!");
 	}
 }
