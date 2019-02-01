@@ -7,9 +7,9 @@ import java.util.concurrent.TimeUnit;
 import jneat.Network;
 
 public class SimHandler implements Simulation {
-	ArrayList<Integer> queue = new ArrayList<Integer>();
-	ArrayList<Integer> running = new ArrayList<Integer>();
-	ArrayList<Double> results = new ArrayList<Double>();
+	ArrayList<Network> queue = new ArrayList<Network>();
+	ArrayList<Network> running = new ArrayList<Network>();
+	ArrayList<Double[]> results = new ArrayList<Double[]>();
 	
 	final int maxBacklog = 16;
 	final int numThreads = 16;
@@ -18,16 +18,16 @@ public class SimHandler implements Simulation {
 	public boolean hasRequest() {
 		return queue.size() > 0;
 	}
-	public synchronized Integer getRequest() {
+	public synchronized Network getRequest() {
 		if(queue.size() == 0)
 			return null;
-		Integer req = queue.get(0);
+		Network req = queue.get(0);
 		queue.remove(req);
 		running.add(req);
 		return req;
 	}
-	public synchronized void addResult(Integer req,Double r) {
-		results.add(r);
+	public synchronized void addResult(Network req,Double r) {
+		results.add(new Double[]{(double)req.getNet_id(),r});
 		running.remove(req);
 	}
 	
@@ -45,7 +45,7 @@ public class SimHandler implements Simulation {
 			while(true) {
 				if(server.hasRequest()) {
 					//System.out.println("Thread "+tID+": attempting to get request...");
-					Integer request = server.getRequest();
+					Network request = server.getRequest();
 					if(request != null) {
 						addResult(request,processInput(request));
 					}
@@ -61,13 +61,13 @@ public class SimHandler implements Simulation {
 				}
 			}
 		}
-		public Double processInput(Integer x) {
+		public Double processInput(Network x) {
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			return tID*100 + Math.sqrt(x);
+			return Thrust.getBestFitnessHeadlessSim(x);
 		}
 		
 	}
@@ -93,7 +93,7 @@ public class SimHandler implements Simulation {
 	// Adds int to processing queue
 	// Returns true if added
 	// Returns false if queue is backlogged
-	public boolean addToQueue(int x) {
+	public boolean addToQueue(Network x) {
 		if(queue.size() < 10) {
 			queue.add(x);
 			return true;
@@ -103,14 +103,14 @@ public class SimHandler implements Simulation {
 	public boolean hasResults() {
 		return results.size() > 0;
 	}
-	public double getResult() {
-		double r = results.get(0);
+	public Double[] getResult() {
+		Double[] r = results.get(0);
 		results.remove(r);
 		return r;
 	}
-	public ArrayList<Double> getAllResults(){
-		ArrayList<Double> r = results;
-		results = new ArrayList<Double>();
+	public ArrayList<Double[]> getAllResults(){
+		ArrayList<Double[]> r = results;
+		results = new ArrayList<Double[]>();
 		return r;
 	}
 	public boolean isIdle() {

@@ -8,6 +8,8 @@ import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import jneat.Network;
+
 public class Test {
 	public static void main(String[] args) {
 		 final String[] serverIPs = {
@@ -44,10 +46,9 @@ public class Test {
 			
 			Scanner sc = new Scanner(System.in);
 			int N = sc.nextInt();
-			int input;
+			Network input=Thrust.readGenomeFromFile();
 			long startTime = System.currentTimeMillis();
 			for(int i=0;i<N;i++) {
-				input = sc.nextInt();
 				boolean success = false;
 				while(!success) {
 					success = submitToServer(input,stubList);
@@ -75,12 +76,11 @@ public class Test {
 			System.out.println("Total time "+elapsedTime+"s");
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	static boolean submitToServer(int x,ArrayList<Simulation> stubList) throws RemoteException {
+	static boolean submitToServer(Network x,ArrayList<Simulation> stubList) throws RemoteException {
 		for(Simulation stub:stubList)
 			if(!stub.isBacklogged()) {
 				stub.addToQueue(x);
@@ -88,9 +88,8 @@ public class Test {
 			}
 		return false;
 	}
-	static void nicerPrint(Double x) {
-		int tID = (int)(x/100);
-		x = x%100;
-		System.out.println("Thread "+tID+" returned "+x+"!");
+	static void nicerPrint(Double[] x) {
+		int netID = (int)x[0].doubleValue();
+		System.out.println("NN "+netID+" returned fitness "+x[1]+"!");
 	}
 }
