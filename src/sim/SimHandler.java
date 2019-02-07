@@ -10,9 +10,11 @@ public class SimHandler implements Simulation {
 	ArrayList<Network> queue = new ArrayList<Network>();
 	ArrayList<Network> running = new ArrayList<Network>();
 	ArrayList<Double[]> results = new ArrayList<Double[]>();
+	int numNets = 1;
+	boolean comm = false;
 	
-	final int maxBacklog = 16;
-	final int numThreads = 16;
+	final int maxBacklog = 3;
+	final int numThreads = 3;
 	Thread[] threads = new Thread[numThreads];
 	
 	public boolean hasRequest() {
@@ -26,10 +28,30 @@ public class SimHandler implements Simulation {
 		running.add(req);
 		return req;
 	}
+	public synchronized Network[] getMultiRequest(int n) {
+		if(queue.size() < n)
+			return null;
+		Network[] out = new Network[n];
+		for(int i=0;i<n;i++) {
+			out[i] = queue.get(0);
+			queue.remove(out[i]);
+			running.add(out[i]);
+		}
+		return out;
+	}
+	
+	//Add result to results, remove it from running
 	public synchronized void addResult(Network req,Double r) {
 		results.add(new Double[]{(double)req.getNet_id(),r});
 		running.remove(req);
 	}
+	public synchronized void addMultiResult(Network[] reqs,Double[] res) {
+		for(int i=0;i<reqs.length;i++) {
+			results.add(new Double[]{(double)reqs[i].getNet_id(),res[i]});
+			running.remove(reqs[i]);
+		}
+	}
+	
 	
 	class QueueProcessor implements Runnable{
 		SimHandler server;
@@ -45,15 +67,23 @@ public class SimHandler implements Simulation {
 			while(true) {
 				if(server.hasRequest()) {
 					//System.out.println("Thread "+tID+": attempting to get request...");
-					Network request = server.getRequest();
-					if(request != null) {
-						addResult(request,processInput(request));
+					Network request = null;
+					Network[] multiRequest = null;
+					if(numNets == 1) {
+						request = server.getRequest();
+						if(request != null)
+							addResult(request,processInput(request));
+					}
+					else {
+						multiRequest = getMultiRequest(numNets);
+						if(multiRequest != null)
+							addMultiResult(multiRequest,processMultiInput(multiRequest));
 					}
 				}
 				else {
 					try {
 						//System.out.println("Thread "+tID+": idle!");
-						Thread.sleep(1000);
+						Thread.sleep(500);
 						//TimeUnit.SECONDS.sleep(1);
 					} catch (Exception e) {
 						//e.printStackTrace();
@@ -62,12 +92,12 @@ public class SimHandler implements Simulation {
 			}
 		}
 		public Double processInput(Network x) {
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
 			return Thrust.getBestFitnessHeadlessSim(x);
+		}
+		//CAUTION: assumes 3 neural networks, does not work for any N
+		public Double[] processMultiInput(Network[] nets) {
+			Double fit = Thrust.getBestFitnessSim(nets[0], nets[1], nets[2], false, comm);;
+			return new Double[]{fit,fit,fit};
 		}
 		
 	}
@@ -89,13 +119,29 @@ public class SimHandler implements Simulation {
 	public double getBestFitnessHeadlessSim(Network net) {
 		return Thrust.getBestFitnessHeadlessSim(net);
 	}
+	public double getBestFitnessHeadlessSim(Network net1,Network net2,Network net3) {
+		return Thrust.getBestFitnessSim(net1, net2, net3, false, comm);
+	}
 	
-	// Adds int to processing queue
+	// Adds net to processing queue
 	// Returns true if added
 	// Returns false if queue is backlogged
 	public boolean addToQueue(Network x) {
-		if(queue.size() < 10) {
+		if(queue.size() < maxBacklog) {
+			numNets = 1;
+			comm = false;
 			queue.add(x);
+			return true;
+		}
+		return false;
+	}
+	public boolean addToQueue(Network net1,Network net2,Network net3,boolean comm) {
+		if(queue.size() < maxBacklog) {
+			numNets = 3;
+			this.comm = comm;
+			queue.add(net1);
+			queue.add(net2);
+			queue.add(net3);
 			return true;
 		}
 		return false;

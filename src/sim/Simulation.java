@@ -12,6 +12,8 @@ public interface Simulation extends Remote {
 	double getBestFitnessHeadlessSim(Network net) throws RemoteException;
 	
 	boolean addToQueue(Network x) throws RemoteException;
+	boolean addToQueue(Network net1,Network net2,Network net3,boolean comm) throws RemoteException;
+	
 	boolean hasResults() throws RemoteException;
 	Double[] getResult() throws RemoteException;
 	ArrayList<Double[]> getAllResults() throws RemoteException;
