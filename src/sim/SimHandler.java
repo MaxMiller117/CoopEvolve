@@ -13,8 +13,8 @@ public class SimHandler implements Simulation {
 	int numNets = 1;
 	boolean comm = false;
 	
-	final int maxBacklog = 3;
-	final int numThreads = 3;
+	final int maxBacklog = 4;
+	final int numThreads = 4;
 	Thread[] threads = new Thread[numThreads];
 	
 	public boolean hasRequest() {
@@ -96,7 +96,7 @@ public class SimHandler implements Simulation {
 		}
 		//CAUTION: assumes 3 neural networks, does not work for any N
 		public Double[] processMultiInput(Network[] nets) {
-			Double fit = Thrust.getBestFitnessSim(nets[0], nets[1], nets[2], false, comm);;
+			Double fit = Thrust.getBestFitnessSim(nets[0], nets[1], nets[2], false, comm);
 			return new Double[]{fit,fit,fit};
 		}
 		

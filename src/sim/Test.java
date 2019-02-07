@@ -13,10 +13,16 @@ import jneat.Network;
 public class Test {
 	public static void main(String[] args) {
 		 final String[] serverIPs = {
-			 "192.168.101.21"
+			 //"192.168.101.21" // Desktop
+			 "127.0.0.1"      // Laptop (localhost)
+			 //"172.16.5.185"    // Old Desktop
+			//"25.6.128.250"     // Old Desktop Hamachi
+			//"192.168.7.100"    // Server
 		 };
 		 final int port = 1099;
-		 final int population = 250;
+		 final int numNets = 3;
+		 final boolean comm = false;
+		 final int population = 8*numNets;
 		 try {
 			//System.setProperty("java.security.policy","file:./test.policy");
 			System.setProperty("java.security.policy","file:/C:/Users/MaxMi/Documents/GitHub/CoopEvolve/src/test.policy");
@@ -40,6 +46,7 @@ public class Test {
 					stubList.add((Simulation)registry.lookup("Simulation"));
 				}catch(Exception e) {
 					System.out.println("Getting stub from a registry failed!");
+					e.printStackTrace();
 				}
 			}
 			
@@ -56,10 +63,11 @@ public class Test {
 			}
 			
 			long startTime = System.currentTimeMillis();
-			for(int i=0;i<networkList.length;i++) {
+			for(int i=0;i<networkList.length;i+=numNets) {
 				boolean success = false;
 				while(!success) {
-					success = submitToServer(networkList[i],stubList);
+					//success = submitToServer(networkList[i],stubList);
+					success = submitToServer(networkList[i],networkList[i+1],networkList[i+2],comm,stubList);
 					if(!success) {
 						//System.out.println("Failing to add input to queue: "+input);
 						Thread.sleep(50);
@@ -92,6 +100,14 @@ public class Test {
 		for(Simulation stub:stubList)
 			if(!stub.isBacklogged()) {
 				stub.addToQueue(x);
+				return true;
+			}
+		return false;
+	}
+	static boolean submitToServer(Network net1,Network net2,Network net3,boolean comm,ArrayList<Simulation> stubList) throws RemoteException {
+		for(Simulation stub:stubList)
+			if(!stub.isBacklogged()) {
+				stub.addToQueue(net1,net2,net3,comm);
 				return true;
 			}
 		return false;
