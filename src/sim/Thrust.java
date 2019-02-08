@@ -315,6 +315,7 @@ public class Thrust extends SimulationFrame {
 			net2.flush();
 			net3.flush();
 			
+			//The comm output node is node 5 so only use nodes 0-4 for choosing the most confident
 			robot1.doActionByIndex(getMostConfident(outputs1.subList(0,5)));
 			comm1 = outputs1.get(5);
 			robot2.doActionByIndex(getMostConfident(outputs2.subList(0,5)));
@@ -587,10 +588,10 @@ public class Thrust extends SimulationFrame {
 	}
 	
 	// Adapted from code in Generation.java
-	public static Network readGenomeFromFile() {
+	public static Network readGenomeFromFile(String fileName) {
 		System.out.println(EnvRoutine.getJneatFileData(EnvConstant.NAME_GENOMEA));
 		//String path = "C:\\Users\\MaxMi\\Documents\\GitHub\\CoopEvolve\\src\\genomeNew";
-		String path = "C:\\Users\\MaxMi\\Documents\\GitHub\\CoopEvolve\\data\\xwinner52_111";
+		String path = "C:\\Users\\MaxMi\\Documents\\GitHub\\CoopEvolve\\data\\"+fileName;
 		IOseq xFile = new IOseq(path);
 		boolean rc = xFile.IOseqOpenR();
 		
@@ -604,5 +605,8 @@ public class Thrust extends SimulationFrame {
 		Genome u_genome = new Genome(id, xFile);
 		
 		return u_genome.genesis(0);
+	}
+	public static Network readGenomeFromFile() {
+		return readGenomeFromFile("genome_3_comm");
 	}
 }
