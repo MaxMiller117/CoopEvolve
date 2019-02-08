@@ -96,7 +96,7 @@ public class SimHandler implements Simulation {
 		}
 		//CAUTION: assumes 3 neural networks, does not work for any N
 		public Double[] processMultiInput(Network[] nets) {
-			Double fit = Thrust.getBestFitnessSim(nets[0], nets[1], nets[2], false, comm);
+			Double fit = Thrust.getBestFitnessSim(nets[0], nets[1], nets[2], true, comm);
 			return new Double[]{fit,fit,fit};
 		}
 		
