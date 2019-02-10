@@ -37,6 +37,7 @@ import java.lang.*;
    import java.lang.reflect.*;
    import log.*;
 import sim.Simulation;
+import sim.Test;
 import sim.Thrust;
 
 public class Generation extends JPanel implements ActionListener, ItemListener
@@ -848,8 +849,9 @@ public void itemStateChanged(ItemEvent e) {
 				  u_pop = new Population(EnvRoutine.getJneatFileData(EnvConstant.NAME_CURR_POPULATION));   									
 			
 			
-			   logger.sendToLog(" generation:      Verifying Spawned Pop....");
-			   u_pop.verify();
+			   //logger.sendToLog(" generation:      Verifying Spawned Pop....");
+			   //u_pop.verify();
+			   logger.sendToLog(" generation:      SKIPPING Verifying Spawned Pop....");
 			
 			// start ............
 			//
@@ -1386,6 +1388,7 @@ public void itemStateChanged(ItemEvent e) {
 	   Population pop, 
 	   int generation, 
 	   String filename) {
+		   System.out.println("Starting an epoch...");
 	  
 		 String winner_prefix = EnvConstant.PREFIX_WINNER_FILE;
 		 String riga1 = null;
@@ -1415,6 +1418,41 @@ public void itemStateChanged(ItemEvent e) {
 			itr_organism = pop.organisms.iterator();
 			double max_fitness_of_winner = 0.0;
 		 
+			ArrayList<Organism> organismList = new ArrayList<Organism>();
+			while(itr_organism.hasNext()) {
+				Organism _organism = (Organism)itr_organism.next();
+				_organism.net.setNet_id(organismList.size());
+				organismList.add(_organism);
+			}
+			
+			for(int i=0;i<organismList.size();i++)
+				System.out.println("Net_id: "+organismList.get(i).net.getNet_id());
+			
+			Test.setSecurityPolicy();
+	        ArrayList<Registry> registryList = Test.getRegistryList();
+	        ArrayList<Simulation> stubList = Test.getStubList(registryList);
+	        
+	        int numNets = 3;
+	        boolean comm = false;
+	        ArrayList<Double[]> resultList = Test.processOrganismList(organismList,numNets,comm,stubList);
+	        
+	        // Store results in the organism objects
+	        while(resultList.size()>0) {
+	        	Double[] result = resultList.get(0);
+	        	int net_id = result[0].intValue();
+	        	double fitness = result[1];
+	        	Organism _organism = organismList.get(net_id);
+	        	_organism.setFitness(fitness);
+	        	_organism.setWinner(fitness > 0.3333);
+	        	if(fitness > 0.6666)
+	        		EnvConstant.SUPER_WINNER_ = true;
+	        	
+	        	resultList.remove(result);
+	        }
+	        
+	        System.out.println("Finished assigning fitness results.");
+			
+			/*
 			long startTime = System.nanoTime();
 			
 			tPool=Executors.newFixedThreadPool(8);
@@ -1435,11 +1473,14 @@ public void itemStateChanged(ItemEvent e) {
 			long stopTime = System.nanoTime();
 			double timeDiff = (int)((stopTime-startTime)/10000000.0)/100.0;
 			System.out.println("Sims took "+timeDiff+"s");
+			*/
 			
 			//Write fitness of every organism to file
-			appendFitnessInfo(workerList,filename);
+			//appendFitnessInfo(workerList,filename);
+	        appendFitnessInfoOrg(organismList,filename);
 			
-			for(EvalWorker worker:workerList) 
+			//for(EvalWorker worker:workerList) 
+	        for(Organism _organism:organismList)
 			{
 			/*//point to organism
 			   Organism _organism = ((Organism) itr_organism.next());
@@ -1447,8 +1488,9 @@ public void itemStateChanged(ItemEvent e) {
 			//evaluate 
 			   esito = evaluate(_organism);*/
 			   
-			   Organism _organism = worker.organism;
-			   esito = worker.winner;
+			   //Organism _organism = worker.organism;
+			   //esito = worker.winner;
+			   esito = _organism.getWinner();
 			
 			// if is a winner , store a flag
 			   if (esito) {
@@ -1660,10 +1702,22 @@ public void itemStateChanged(ItemEvent e) {
    
 	//Writes generation info to a convenient file
     public void appendFitnessInfo(ArrayList<EvalWorker> workerList,String filename) throws IOException {
-    	BufferedWriter writer = new BufferedWriter(new FileWriter(filename+"_data",true));
+    	BufferedWriter writer = new BufferedWriter(new FileWriter(filename+"_data.csv",true));
     	for(int i=0;i<workerList.size();i++) {
     		EvalWorker worker = workerList.get(i);
     		String fitness = ""+worker.organism.getFitness();
+    		if(i>0)
+    			fitness = ","+fitness;
+    		writer.append(fitness);
+    	}
+    	writer.newLine();
+    	writer.close();
+    }
+    public void appendFitnessInfoOrg(ArrayList<Organism> organismList,String filename) throws IOException {
+    	BufferedWriter writer = new BufferedWriter(new FileWriter(filename+"_data.csv",true));
+    	for(int i=0;i<organismList.size();i++) {
+    		Organism org = organismList.get(i);
+    		String fitness = ""+org.getFitness();
     		if(i>0)
     			fitness = ","+fitness;
     		writer.append(fitness);
