@@ -1443,8 +1443,8 @@ public void itemStateChanged(ItemEvent e) {
 	        	double fitness = result[1];
 	        	Organism _organism = organismList.get(net_id);
 	        	_organism.setFitness(fitness);
-	        	_organism.setWinner(fitness > 0.3333);
-	        	if(fitness > 0.6666)
+	        	_organism.setWinner(fitness > 0.6);
+	        	if(fitness > 0.9)
 	        		EnvConstant.SUPER_WINNER_ = true;
 	        	
 	        	resultList.remove(result);
