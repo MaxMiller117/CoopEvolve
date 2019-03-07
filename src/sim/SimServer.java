@@ -14,8 +14,9 @@ public class SimServer extends SimHandler{
 	public static void main(String args[]) {
 		final int port = 1099;
 		try {
-			System.setProperty("java.security.policy","file:./test.policy");
+			//System.setProperty("java.security.policy","file:./test.policy");
 			//System.setProperty("java.security.policy","file:/C:/Users/Max/Documents/GitHub/CoopEvolve/test.policy");
+			System.setProperty("java.security.policy","file:/C:/Users/MaxMi/Documents/GitHub/CoopEvolve/src/test.policy");
 			
 	        if (System.getSecurityManager() == null) {
 	            System.setSecurityManager(new SecurityManager());

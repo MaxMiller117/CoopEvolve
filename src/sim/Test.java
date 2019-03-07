@@ -14,17 +14,18 @@ import jneat.Organism;
 
 public class Test {
 	static final String[] serverIPs = {
-		"192.168.101.21", // Desktop
-		"127.0.0.1"      // Laptop (localhost)
+		"172.16.6.228"     //Server outside
+		//"192.168.7.100"    // Server
+		//"192.168.101.21" // Desktop
+		//"127.0.0.1"      // Laptop (localhost)
 		//"172.16.5.185"    // Old Desktop
 		//"25.6.128.250"     // Old Desktop Hamachi
-		//"192.168.7.100"    // Server
 	};
 	static final int port = 1099;
 	public static void main(String[] args) {
-		 final int numNets = 3;
-		 final boolean comm = true;
-		 final int population = 8*numNets;
+		 final int numNets = 1;
+		 final boolean comm = false;
+		 final int population = 25*numNets;
 		 try {
 			setSecurityPolicy();
 			 
@@ -40,7 +41,8 @@ public class Test {
 	        //Generate list of neural networks for testing
 			ArrayList<Network> networkList = new ArrayList<Network>();
 			for(int i=0;i<population;i++) {
-				Network input=Thrust.readGenomeFromFile();
+				String filename = "ex_genome_1";
+				Network input=Thrust.readGenomeFromFile(filename);
 				input.setNet_id(i);
 				networkList.add(input);
 			}
@@ -99,7 +101,10 @@ public class Test {
 			boolean success = false;
 			while(!success) {
 				//success = submitToServer(networkList[i],stubList);
-				success = submitToServer(networkList.subList(i,i+numNets),comm,stubList);
+				if(numNets == 1)
+					success = submitToServer(networkList.get(i),stubList);
+				else
+					success = submitToServer(networkList.subList(i,i+numNets),comm,stubList);
 				if(!success) {
 					//System.out.println("Failing to add input to queue: "+input);
 					try {
@@ -143,18 +148,14 @@ public class Test {
 	
 	public static boolean submitToServer(Network x,List<Simulation> stubList) throws RemoteException {
 		for(Simulation stub:stubList)
-			if(!stub.isBacklogged()) {
-				stub.addToQueue(x);
-				return true;
-			}
+			if(!stub.isBacklogged())
+				return stub.addToQueue(x);
 		return false;
 	}
 	public static boolean submitToServer(Network net1,Network net2,Network net3,boolean comm,List<Simulation> stubList) throws RemoteException {
 		for(Simulation stub:stubList)
-			if(!stub.isBacklogged()) {
-				stub.addToQueue(net1,net2,net3,comm);
-				return true;
-			}
+			if(!stub.isBacklogged())
+				return stub.addToQueue(net1,net2,net3,comm);
 		return false;
 	}
 	//Only support for 1 or 3 neural networks

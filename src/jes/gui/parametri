@@ -25,7 +25,7 @@ p_mate_multipoint_avg_prob  0.3
 p_mate_singlepoint_prob  0.3
 p_mate_only_prob  0.2
 p_recur_only_prob  0.0
-p_pop_size  250
+p_pop_size  750
 p_dropoff_age  50
 p_newlink_tries  50
 p_print_every  10
