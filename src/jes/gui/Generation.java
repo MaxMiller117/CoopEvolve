@@ -1553,7 +1553,7 @@ public void itemStateChanged(ItemEvent e) {
 				  if (_organism.winner) 
 				  {
 					 name_of_winner = EnvRoutine.getJneatFileData(winner_prefix) + generation + "_" + _organism.getGenome().genome_id; 
-					 _organism.getGenome().print_to_filename(name_of_winner);
+					 //_organism.getGenome().print_to_filename(name_of_winner);
 				  // EnvConstant.SERIAL_WINNER++;
 					 conta++;
 				  }
@@ -1561,7 +1561,7 @@ public void itemStateChanged(ItemEvent e) {
 				  {
 					 logger.sendToLog(" generation:      in this generation " + generation + " i have found a SUPER WINNER "); 
 					 name_of_winner = EnvRoutine.getJneatFileData(winner_prefix)+ "_SUPER_" + generation + "_" + _organism.getGenome().genome_id; 
-					 _organism.getGenome().print_to_filename(name_of_winner);
+					 //_organism.getGenome().print_to_filename(name_of_winner);
 				  //  EnvConstant.SERIAL_SUPER_WINNER++;
 					 EnvConstant.SUPER_WINNER_ = false;
 				  
