@@ -133,11 +133,11 @@ def graph_opt(opt,show=True):
         
     #plt.scatter(gen,avg)
     plt.plot('gen','avg_low',data=data,color='xkcd:light red',linewidth=1,linestyle='dashed')
-    plt.plot('gen','avg',data=data,color='xkcd:red',linewidth=2,label="$avg \pm \sigma$")
+    plt.plot('gen','avg',data=data,color='xkcd:red',linewidth=2,label="$avg \pm 2\sigma$")
     plt.plot('gen','avg_high',data=data,color='xkcd:light red',linewidth=1,linestyle='dashed')
     
     plt.plot('gen','max_low',data=data,color='xkcd:light blue',linewidth=1,linestyle='dashed')
-    plt.plot('gen','max',data=data,color='xkcd:blue',linewidth=2,label="$max \pm \sigma$")
+    plt.plot('gen','max',data=data,color='xkcd:blue',linewidth=2,label="$max \pm 2\sigma$")
     plt.plot('gen','max_high',data=data,color='xkcd:light blue',linewidth=1,linestyle='dashed')
     
     plt.title('Data for opt '+str(opt))
