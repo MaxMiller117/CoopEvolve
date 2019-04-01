@@ -7,6 +7,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -50,6 +51,12 @@ public class Thrust extends SimulationFrame {
 	private Network net1,net2,net3;
 	private double comm1,comm2,comm3;
 	private boolean communicate;
+	private int opt;
+	
+	final double xLimitLow = -4.0;
+	final double xLimitHigh = 4.0;
+	final double yLimitLow = 1.2;
+	final double yLimitHigh = 2.5;
 	
 	// Some booleans to indicate that a key is pressed
 	
@@ -170,6 +177,26 @@ public class Thrust extends SimulationFrame {
 		}
 	}
 	
+	public Thrust(boolean headless,Network[] netList,int opt) {
+		super("Thrust",64.0,timeScale,headless);
+		
+		if(netList.length == 1)
+			this.net = netList[0];
+		else {
+			this.net1 = netList[0];
+			this.net2 = netList[1];
+			this.net3 = netList[2];
+		}
+		this.opt = opt;
+	}
+	
+	public double randX() {
+		return Math.random()*(xLimitHigh-xLimitLow)+xLimitLow;
+	}
+	public double randY() {
+		return Math.random()*(yLimitHigh-yLimitLow)+yLimitLow;
+	}
+	
 	// Start world, create objects, and add objects to world
 	protected void initializeWorld() {
 		this.world.setGravity(new Vector2(0, 0));
@@ -199,19 +226,30 @@ public class Thrust extends SimulationFrame {
 		b.setMass(MassType.INFINITE);
 		this.world.addBody(b);
 		
+		System.out.println(randX()+" : "+randY());
+		
 		// First robot
 		robot1 = new Robot();
-		robot1.translate(-2.0, 2.0);
+		if(opt<=3)
+			robot1.translate(-2.0, 2.0);
+		else
+			robot1.translate(randX(),randY());
 		this.world.addBody(robot1);
 		
 		// Second robot
 		robot2 = new Robot();
-		robot2.translate(0.0, 2.0);
+		if(opt<=3)
+			robot2.translate(0.0, 2.0);
+		else
+			robot2.translate(randX(),randY());
 		this.world.addBody(robot2);
 		
 		// Third robot
 		robot3 = new Robot();
-		robot3.translate(1.0,-1.0);
+		if(opt<=3)
+			robot3.translate(2.0,2.0);
+		else
+			robot3.translate(randX(),randY());
 		this.world.addBody(robot3);
 		
 		// The box
@@ -265,202 +303,163 @@ public class Thrust extends SimulationFrame {
         	robot1.stop();
         	robot2.stop();
         }
-        if(net1!= null && net2!=null && net3!=null && communicate) {
-        	double[] inputs1 = {
-        			robot1.getLeftEncoder(),
-        			robot1.getRightEncoder(),
-        			comm2,
-        			comm3};
-        	double[] inputs2 = {
-        			robot1.getLeftEncoder(),
-        			robot1.getRightEncoder(),
-        			comm1,
-        			comm3};
-        	double[] inputs3 = {
-        			robot1.getLeftEncoder(),
-        			robot1.getRightEncoder(),
-        			comm1,
-        			comm2};
-        	
-        	net1.load_sensors(inputs1);
-        	net2.load_sensors(inputs2);
-        	net3.load_sensors(inputs3);
-        	
-        	net1.activate();
-        	for(int relax=0;relax<=net1.max_depth();relax++)
-				net1.activate();
-        	net2.activate();
-        	for(int relax=0;relax<=net2.max_depth();relax++)
-				net2.activate();
-        	net3.activate();
-        	for(int relax=0;relax<=net3.max_depth();relax++)
-				net3.activate();
-        	
-        	Vector<NNode> outputNNodes1 = net1.getOutputs();
-        	Vector<NNode> outputNNodes2 = net2.getOutputs();
-        	Vector<NNode> outputNNodes3 = net3.getOutputs();
-        	
-			Vector<Double> outputs1 = new Vector<Double>();
-			Vector<Double> outputs2 = new Vector<Double>();
-			Vector<Double> outputs3 = new Vector<Double>();
-			
-			for(NNode node : outputNNodes1)
-				outputs1.add(node.getActivation());
-			for(NNode node : outputNNodes2)
-				outputs2.add(node.getActivation());
-			for(NNode node : outputNNodes3)
-				outputs3.add(node.getActivation());
-			
-			net1.flush();
-			net2.flush();
-			net3.flush();
-			
-			//The comm output node is node 5 so only use nodes 0-4 for choosing the most confident
-			robot1.doActionByIndex(getMostConfident(outputs1.subList(0,5)));
-			comm1 = outputs1.get(5);
-			robot2.doActionByIndex(getMostConfident(outputs2.subList(0,5)));
-			comm2 = outputs2.get(5);
-			robot3.doActionByIndex(getMostConfident(outputs3.subList(0,5)));
-			comm3 = outputs3.get(5);
-        }
-        else if(net1!= null && net2!=null && net3!=null) {
-        	double[] inputs1 = {
-        			robot1.getLeftEncoder(),
-        			robot1.getRightEncoder()};
-        	double[] inputs2 = {
-        			robot1.getLeftEncoder(),
-        			robot1.getRightEncoder()};
-        	double[] inputs3 = {
-        			robot1.getLeftEncoder(),
-        			robot1.getRightEncoder()};
-        	
-        	net1.load_sensors(inputs1);
-        	net2.load_sensors(inputs2);
-        	net3.load_sensors(inputs3);
-        	
-        	net1.activate();
-        	for(int relax=0;relax<=net1.max_depth();relax++)
-				net1.activate();
-        	net2.activate();
-        	for(int relax=0;relax<=net2.max_depth();relax++)
-				net2.activate();
-        	net3.activate();
-        	for(int relax=0;relax<=net3.max_depth();relax++)
-				net3.activate();
-        	
-        	Vector<NNode> outputNNodes1 = net1.getOutputs();
-        	Vector<NNode> outputNNodes2 = net2.getOutputs();
-        	Vector<NNode> outputNNodes3 = net3.getOutputs();
-        	
-			Vector<Double> outputs1 = new Vector<Double>();
-			Vector<Double> outputs2 = new Vector<Double>();
-			Vector<Double> outputs3 = new Vector<Double>();
-			
-			for(NNode node : outputNNodes1)
-				outputs1.add(node.getActivation());
-			for(NNode node : outputNNodes2)
-				outputs2.add(node.getActivation());
-			for(NNode node : outputNNodes3)
-				outputs3.add(node.getActivation());
-			
-			net1.flush();
-			net2.flush();
-			net3.flush();
-			
-			robot1.doActionByIndex(getMostConfident(outputs1));
-			robot2.doActionByIndex(getMostConfident(outputs2));
-			robot3.doActionByIndex(getMostConfident(outputs3));
-        }
-        else if(net != null) {
-			double[] inputs = {
-			robot1.getLeftEncoder(),
-			robot1.getRightEncoder(),
-			robot2.getLeftEncoder(),
-			robot2.getRightEncoder(),
-			robot3.getLeftEncoder(),
-			robot3.getRightEncoder()};
+        
+        if(opt == 0) {
+	        if(net1!= null && net2!=null && net3!=null && communicate) {
+	        	double[] inputs1 = {
+	        			robot1.getLeftEncoder(),
+	        			robot1.getRightEncoder(),
+	        			comm2,
+	        			comm3};
+	        	double[] inputs2 = {
+	        			robot1.getLeftEncoder(),
+	        			robot1.getRightEncoder(),
+	        			comm1,
+	        			comm3};
+	        	double[] inputs3 = {
+	        			robot1.getLeftEncoder(),
+	        			robot1.getRightEncoder(),
+	        			comm1,
+	        			comm2};
+	        	
+	        	List<Vector<Double>>  outputList = runNet(new double[][] {inputs1,inputs2,inputs3});
+				
+				//The comm output node is node 5 so only use nodes 0-4 for choosing the most confident
+				robot1.doActionByIndex(getMostConfident(outputList.get(0).subList(0,5)));
+				comm1 = outputList.get(0).get(5);
+				robot2.doActionByIndex(getMostConfident(outputList.get(1).subList(0,5)));
+				comm2 = outputList.get(1).get(5);
+				robot3.doActionByIndex(getMostConfident(outputList.get(2).subList(0,5)));
+				comm3 = outputList.get(2).get(5);
+	        }
+	        else if(net1!= null && net2!=null && net3!=null) {
+	        	double[] inputs1 = {
+	        			robot1.getLeftEncoder(),
+	        			robot1.getRightEncoder()};
+	        	double[] inputs2 = {
+	        			robot1.getLeftEncoder(),
+	        			robot1.getRightEncoder()};
+	        	double[] inputs3 = {
+	        			robot1.getLeftEncoder(),
+	        			robot1.getRightEncoder()};
+	        	
+	        	List<Vector<Double>>  outputList = runNet(new double[][] {inputs1,inputs2,inputs3});
+				
+				robot1.doActionByIndex(getMostConfident(outputList.get(0)));
+				robot2.doActionByIndex(getMostConfident(outputList.get(1)));
+				robot3.doActionByIndex(getMostConfident(outputList.get(2)));
+	        }
+	        else if(net != null) {
+				double[] inputs = {
+				robot1.getLeftEncoder(),
+				robot1.getRightEncoder(),
+				robot2.getLeftEncoder(),
+				robot2.getRightEncoder(),
+				robot3.getLeftEncoder(),
+				robot3.getRightEncoder()};
+				net.load_sensors(inputs);
+				
+
+	        	List<Vector<Double>>  outputList = runNet(new double[][] {inputs});
+				
+				//System.out.println(inputs);
+				//System.out.println(outputs);
+				// Choose the highest confidence option for each of the 3 robots
+				robot1.doActionByIndex(getMostConfident(outputList.get(0).subList(0,5)));
+				robot2.doActionByIndex(getMostConfident(outputList.get(0).subList(5,10)));
+				robot3.doActionByIndex(getMostConfident(outputList.get(0).subList(10,15)));
+			}
+	        else {
+	        	// Apply linear thrust
+	            // Drive forward
+	            if (this.forwardThrustOn1.get())
+	            	robot1.driveForward();
+	            // Drive backward
+	            else if (this.reverseThrustOn1.get())
+	            	robot1.driveBackward();
+	            // Slow down by default
+	            else {
+	            	robot1.linearStopMoving();
+	            }
+	            
+	            // Apply angular thrust
+	            // Turn left
+	            if (this.leftThrustOn1.get()) {
+	            	robot1.driveLeft();
+	            }
+	            // Turn right
+	            else if (this.rightThrustOn1.get()) {
+	            	robot1.driveRight();
+	            }
+	            // Slow down by default
+	            else {
+	            	robot1.angularStopMoving();
+	            }
+	            // Maximum speed limiting and Minimum speed limiting
+	            robot1.limitSpeed(noKey1.get());
+	            
+	            // Apply linear thrust
+	            // Drive forward
+	            if (this.forwardThrustOn1.get())
+	            	robot1.driveForward();
+	            // Drive backward
+	            else if (this.reverseThrustOn1.get())
+	            	robot1.driveBackward();
+	            // Slow down by default
+	            else {
+	            	robot1.linearStopMoving();
+	            }
+	            
+	            // Apply angular thrust
+	            // Turn left
+	            if (this.leftThrustOn1.get()) {
+	            	robot1.driveLeft();
+	            }
+	            // Turn right
+	            else if (this.rightThrustOn1.get())
+	            	robot1.driveRight();
+	            else
+	            	robot1.angularStopMoving();
+	            robot1.limitSpeed(noKey1.get());
+	            
+	            robot2.driveBackward(); //***Hotwired into reverse for testing.
+	            
+	            //robot2.linearStopMoving();
+	            //robot2.angularStopMoving();
+	            //robot2.limitSpeed(true);
+	            
+	            robot3.linearStopMoving();
+	            robot3.angularStopMoving();
+	            robot3.limitSpeed(true);
+	        }
+        } else if (opt == 4) {
+        	//1 net with x/y
+        	// TODO: opt 4
+        	double[] inputs = {
+				robot1.getLeftEncoder(),
+				robot1.getRightEncoder(),
+				robot1.getWorldCenter().x,
+				robot1.getWorldCenter().y,
+				robot2.getLeftEncoder(),
+				robot2.getRightEncoder(),
+				robot2.getWorldCenter().x,
+				robot2.getWorldCenter().y,
+				robot3.getLeftEncoder(),
+				robot3.getRightEncoder(),
+				robot3.getWorldCenter().x,
+				robot3.getWorldCenter().y,
+				};
 			net.load_sensors(inputs);
 			
-			net.activate();
-			for(int relax=0;relax<=net.max_depth();relax++)
-				net.activate();
-			
-			Vector<NNode> outputNNodes = net.getOutputs();
-			Vector<Double> outputs = new Vector<Double>();
-			for(NNode node : outputNNodes)
-				outputs.add(node.getActivation());
-			
-			net.flush();
+
+        	List<Vector<Double>>  outputList = runNet(new double[][] {inputs});
 			
 			//System.out.println(inputs);
 			//System.out.println(outputs);
-			// For now I'm choosing the highest confidence option for each of the 3 robots
-			robot1.doActionByIndex(getMostConfident(outputs.subList(0,5)));
-			robot2.doActionByIndex(getMostConfident(outputs.subList(5,10)));
-			robot3.doActionByIndex(getMostConfident(outputs.subList(10,15)));
-		}
-        else {
-        	// Apply linear thrust
-            // Drive forward
-            if (this.forwardThrustOn1.get())
-            	robot1.driveForward();
-            // Drive backward
-            else if (this.reverseThrustOn1.get())
-            	robot1.driveBackward();
-            // Slow down by default
-            else {
-            	robot1.linearStopMoving();
-            }
-            
-            // Apply angular thrust
-            // Turn left
-            if (this.leftThrustOn1.get()) {
-            	robot1.driveLeft();
-            }
-            // Turn right
-            else if (this.rightThrustOn1.get()) {
-            	robot1.driveRight();
-            }
-            // Slow down by default
-            else {
-            	robot1.angularStopMoving();
-            }
-            // Maximum speed limiting and Minimum speed limiting
-            robot1.limitSpeed(noKey1.get());
-            
-            // Apply linear thrust
-            // Drive forward
-            if (this.forwardThrustOn1.get())
-            	robot1.driveForward();
-            // Drive backward
-            else if (this.reverseThrustOn1.get())
-            	robot1.driveBackward();
-            // Slow down by default
-            else {
-            	robot1.linearStopMoving();
-            }
-            
-            // Apply angular thrust
-            // Turn left
-            if (this.leftThrustOn1.get()) {
-            	robot1.driveLeft();
-            }
-            // Turn right
-            else if (this.rightThrustOn1.get())
-            	robot1.driveRight();
-            else
-            	robot1.angularStopMoving();
-            robot1.limitSpeed(noKey1.get());
-            
-            robot2.driveBackward(); //***Hotwired into reverse for testing.
-            
-            //robot2.linearStopMoving();
-            //robot2.angularStopMoving();
-            //robot2.limitSpeed(true);
-            
-            robot3.linearStopMoving();
-            robot3.angularStopMoving();
-            robot3.limitSpeed(true);
+			// Choose the highest confidence option for each of the 3 robots
+			robot1.doActionByIndex(getMostConfident(outputList.get(0).subList(0,5)));
+			robot2.doActionByIndex(getMostConfident(outputList.get(0).subList(5,10)));
+			robot3.doActionByIndex(getMostConfident(outputList.get(0).subList(10,15)));
         }
         box.linearStopMoving();
         box.angularStopMoving();
@@ -494,6 +493,75 @@ public class Thrust extends SimulationFrame {
         if(tickCount >= tickCountMaximum)
         	stop();
 
+	}
+	
+	public List<Vector<Double>> runNet(double[][] inputList) {
+		if(inputList.length == 1) {
+			net.load_sensors(inputList[0]);
+			net.activate();
+	    	for(int relax=0;relax<=net.max_depth();relax++)
+				net.activate();
+
+	    	Vector<NNode> outputNNodes = net.getOutputs();
+	    	
+			Vector<Double> outputs = new Vector<Double>();
+			
+			for(NNode node : outputNNodes)
+				outputs.add(node.getActivation());
+			net.flush();
+			
+			List<Vector<Double>> outList = new ArrayList<Vector<Double>>();
+			outList.add(outputs);
+			
+			return outList;
+		}
+		else {
+			net1.load_sensors(inputList[0]);
+	    	net2.load_sensors(inputList[1]);
+	    	net3.load_sensors(inputList[2]);
+	    	
+	    	net1.activate();
+	    	for(int relax=0;relax<=net1.max_depth();relax++)
+				net1.activate();
+	    	net2.activate();
+	    	for(int relax=0;relax<=net2.max_depth();relax++)
+				net2.activate();
+	    	net3.activate();
+	    	for(int relax=0;relax<=net3.max_depth();relax++)
+				net3.activate();
+	    	
+	    	Vector<NNode> outputNNodes1 = net1.getOutputs();
+	    	Vector<NNode> outputNNodes2 = net2.getOutputs();
+	    	Vector<NNode> outputNNodes3 = net3.getOutputs();
+	    	
+			Vector<Double> outputs1 = new Vector<Double>();
+			Vector<Double> outputs2 = new Vector<Double>();
+			Vector<Double> outputs3 = new Vector<Double>();
+			
+			for(NNode node : outputNNodes1)
+				outputs1.add(node.getActivation());
+			for(NNode node : outputNNodes2)
+				outputs2.add(node.getActivation());
+			for(NNode node : outputNNodes3)
+				outputs3.add(node.getActivation());
+			
+			net1.flush();
+			net2.flush();
+			net3.flush();
+			
+			List<Vector<Double>> outList = new ArrayList<Vector<Double>>();
+			outList.add(outputs1);
+			outList.add(outputs2);
+			outList.add(outputs3);
+			
+			return outList;
+		}
+    	
+    	
+    	
+    	
+		
+		
 	}
 	
 	public boolean anyWallContact() {
@@ -556,8 +624,13 @@ public class Thrust extends SimulationFrame {
 	public static double getBestFitnessHeadlessSim(Network net) {
 		return getBestFitnessSim(net,true);
 	}
-	public static double getBestFitnessSim(Network net,boolean head) {
-		Thrust simulation = new Thrust(head,net);
+	public static double getBestFitnessHeadlessSim(Network net,int opt) {
+		return getBestFitnessSim(new Network[]{net},true,opt);
+	}
+	public static double getBestFitnessHeadlessSim(Network[] netList,int opt) {
+		return getBestFitnessSim(netList,true,opt);
+	}
+	public static double getBestFitnessSim(Thrust simulation) {
 		simulation.run();
 		while(!simulation.isStopped()) {
 			try {
@@ -570,21 +643,19 @@ public class Thrust extends SimulationFrame {
 		simulation.dispose();
 		return best;
 	}
+	public static double getBestFitnessSim(Network net,boolean head) {
+		Thrust simulation = new Thrust(head,net);
+		return getBestFitnessSim(simulation);
+	}
 	
 	//
 	public static double getBestFitnessSim(Network net1,Network net2,Network net3,boolean head,boolean communicate) {
 		Thrust simulation = new Thrust(head,net1,net2,net3,communicate);
-		simulation.run();
-		while(!simulation.isStopped()) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		double best = simulation.getBestFitness();
-		simulation.dispose();
-		return best;
+		return getBestFitnessSim(simulation);
+	}
+	public static double getBestFitnessSim(Network[] netList,boolean head,int opt) {
+		Thrust simulation = new Thrust(head,netList,opt);
+		return getBestFitnessSim(simulation);
 	}
 	
 	// Adapted from code in Generation.java

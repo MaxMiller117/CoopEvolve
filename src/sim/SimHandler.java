@@ -12,6 +12,7 @@ public class SimHandler implements Simulation {
 	ArrayList<Double[]> results = new ArrayList<Double[]>();
 	int numNets = 1;
 	boolean comm = false;
+	int opt = 1;
 	
 	final int maxBacklog = 4;
 	final int numThreads = 4;
@@ -92,11 +93,18 @@ public class SimHandler implements Simulation {
 			}
 		}
 		public Double processInput(Network x) {
-			return Thrust.getBestFitnessHeadlessSim(x);
+			if(opt <= 3)
+				return Thrust.getBestFitnessHeadlessSim(x);
+			else
+				return Thrust.getBestFitnessHeadlessSim(x,opt);
 		}
 		//CAUTION: assumes 3 neural networks, does not work for any N
 		public Double[] processMultiInput(Network[] nets) {
-			Double fit = Thrust.getBestFitnessSim(nets[0], nets[1], nets[2], true, comm);
+			Double fit;
+			if(opt <= 3)
+				fit = Thrust.getBestFitnessSim(nets[0], nets[1], nets[2], true, comm);
+			else
+				fit = Thrust.getBestFitnessHeadlessSim(nets,opt);
 			return new Double[]{fit,fit,fit};
 		}
 		
@@ -122,6 +130,18 @@ public class SimHandler implements Simulation {
 	public double getBestFitnessHeadlessSim(Network net1,Network net2,Network net3) {
 		return Thrust.getBestFitnessSim(net1, net2, net3, false, comm);
 	}
+	public double getBestFitnessHeadlessSim(Network net,int opt) {
+		return Thrust.getBestFitnessHeadlessSim(net, opt);
+	}
+	public double getBestFitnessHeadlessSim(Network[] netList,int opt) {
+		return Thrust.getBestFitnessHeadlessSim(netList, opt);
+	}
+	
+	public void setOpt(int opt){
+		if(opt==3 || opt==6)
+			comm=true;
+		this.opt = opt;
+	}
 	
 	// Adds net to processing queue
 	// Returns true if added
@@ -135,10 +155,30 @@ public class SimHandler implements Simulation {
 		}
 		return false;
 	}
+	public boolean addToQueue(Network x,int opt) {
+		if(queue.size() < maxBacklog) {
+			numNets = 1;
+			setOpt(opt);
+			queue.add(x);
+			return true;
+		}
+		return false;
+	}
 	public boolean addToQueue(Network net1,Network net2,Network net3,boolean comm) {
 		if(queue.size() < maxBacklog) {
 			numNets = 3;
 			this.comm = comm;
+			queue.add(net1);
+			queue.add(net2);
+			queue.add(net3);
+			return true;
+		}
+		return false;
+	}
+	public boolean addToQueue(Network net1,Network net2,Network net3,int opt) {
+		if(queue.size() < maxBacklog) {
+			numNets = 3;
+			setOpt(opt);
 			queue.add(net1);
 			queue.add(net2);
 			queue.add(net3);

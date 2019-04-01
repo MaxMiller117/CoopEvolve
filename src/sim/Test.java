@@ -14,10 +14,10 @@ import jneat.Organism;
 
 public class Test {
 	static final String[] serverIPs = {
-		"172.16.6.228"     //Server outside
+		//"172.16.6.228"     //Server outside
 		//"192.168.7.100"    // Server
 		//"192.168.101.21" // Desktop
-		//"127.0.0.1"      // Laptop (localhost)
+		"127.0.0.1"      // Laptop (localhost)
 		//"172.16.5.185"    // Old Desktop
 		//"25.6.128.250"     // Old Desktop Hamachi
 	};
@@ -88,23 +88,40 @@ public class Test {
 		return stubList;
 	}
 	
-	public static ArrayList<Double[]> processOrganismList(List<Organism> organismList,int numNets,boolean comm,List<Simulation> stubList) throws RemoteException {
+	public static ArrayList<Double[]> processOrganismList(List<Organism> organismList,int numNets,boolean comm,int opt,List<Simulation> stubList) throws RemoteException {
 		ArrayList<Network> networkList = new ArrayList<Network>();
 		for(int i=0;i<organismList.size();i++)
 			networkList.add(organismList.get(i).net);
-		return processNNList(networkList,numNets,comm,stubList);
+		return processNNList(networkList,numNets,comm,opt,stubList);
 	}
 	public static ArrayList<Double[]> processNNList(List<Network> networkList,int numNets,boolean comm,List<Simulation> stubList) throws RemoteException {
+		return processNNList(networkList,numNets,comm,0,stubList);
+	}
+	public static ArrayList<Double[]> processNNList(List<Network> networkList,int opt,List<Simulation> stubList) throws RemoteException {
+		if(opt == 4)
+			return processNNList(networkList,1,false,opt,stubList);
+		else
+			return processNNList(networkList,3,(Boolean)null,opt,stubList);
+	}
+	public static ArrayList<Double[]> processNNList(List<Network> networkList,int numNets,boolean comm,int opt,List<Simulation> stubList) throws RemoteException {
 		System.out.println("Starting to simulate "+networkList.size()+" neural networks.");
 		long startTime = System.currentTimeMillis();
 		for(int i=0;i<networkList.size();i+=numNets) {
 			boolean success = false;
 			while(!success) {
 				//success = submitToServer(networkList[i],stubList);
-				if(numNets == 1)
-					success = submitToServer(networkList.get(i),stubList);
-				else
-					success = submitToServer(networkList.subList(i,i+numNets),comm,stubList);
+				if(opt <= 3) {
+					if(numNets == 1)
+						success = submitToServer(networkList.get(i),stubList);
+					else
+						success = submitToServer(networkList.subList(i,i+numNets),comm,stubList);
+				}
+				else {
+					if(numNets == 1)
+						success = submitToServer(networkList.get(i),opt,stubList);
+					else
+						success = submitToServer(networkList.subList(i,i+numNets),opt,stubList);
+				}
 				if(!success) {
 					//System.out.println("Failing to add input to queue: "+input);
 					try {
@@ -145,24 +162,47 @@ public class Test {
 		
 		return resultList;
 	}
-	
+	// opt1
 	public static boolean submitToServer(Network x,List<Simulation> stubList) throws RemoteException {
 		for(Simulation stub:stubList)
 			if(!stub.isBacklogged())
 				return stub.addToQueue(x);
 		return false;
 	}
+	// opt4
+	public static boolean submitToServer(Network x,int opt,List<Simulation> stubList) throws RemoteException {
+		for(Simulation stub:stubList)
+			if(!stub.isBacklogged())
+				return stub.addToQueue(x,opt);
+		return false;
+	}
+	// opts 2/3
 	public static boolean submitToServer(Network net1,Network net2,Network net3,boolean comm,List<Simulation> stubList) throws RemoteException {
 		for(Simulation stub:stubList)
 			if(!stub.isBacklogged())
 				return stub.addToQueue(net1,net2,net3,comm);
 		return false;
 	}
+	//opts 5/6
+	public static boolean submitToServer(Network net1,Network net2,Network net3,int opt,List<Simulation> stubList) throws RemoteException {
+		for(Simulation stub:stubList)
+			if(!stub.isBacklogged())
+				return stub.addToQueue(net1,net2,net3,opt);
+		return false;
+	}
+	
 	//Only support for 1 or 3 neural networks
+	//opts 1/2/3
 	public static boolean submitToServer(List<Network> netList,boolean comm,List<Simulation> stubList) throws RemoteException {
 		if(netList.size()==3)
 			return submitToServer(netList.get(0),netList.get(1),netList.get(2),comm,stubList);
 		return submitToServer(netList.get(0),stubList);
+	}
+	//opts 4/5/6
+	public static boolean submitToServer(List<Network> netList,int opt,List<Simulation> stubList) throws RemoteException {
+		if(netList.size()==3)
+			return submitToServer(netList.get(0),netList.get(1),netList.get(2),opt,stubList);
+		return submitToServer(netList.get(0),opt,stubList);
 	}
 	
 	public static void nicerPrint(Double[] x) {

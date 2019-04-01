@@ -1432,9 +1432,10 @@ public void itemStateChanged(ItemEvent e) {
 	        ArrayList<Registry> registryList = Test.getRegistryList();
 	        ArrayList<Simulation> stubList = Test.getStubList(registryList);
 	        
-	        int numNets = 3;
+	        int numNets = 1;
 	        boolean comm = false;
-	        ArrayList<Double[]> resultList = Test.processOrganismList(organismList,numNets,comm,stubList);
+	        int opt = 4;
+	        ArrayList<Double[]> resultList = Test.processOrganismList(organismList,numNets,comm,opt,stubList);
 	        
 	        // Store results in the organism objects
 	        while(resultList.size()>0) {
