@@ -306,19 +306,20 @@ public class Thrust extends SimulationFrame {
         
         if(opt == 0) {
 	        if(net1!= null && net2!=null && net3!=null && communicate) {
+	        	// opt 3
 	        	double[] inputs1 = {
 	        			robot1.getLeftEncoder(),
 	        			robot1.getRightEncoder(),
 	        			comm2,
 	        			comm3};
 	        	double[] inputs2 = {
-	        			robot1.getLeftEncoder(),
-	        			robot1.getRightEncoder(),
+	        			robot2.getLeftEncoder(),
+	        			robot2.getRightEncoder(),
 	        			comm1,
 	        			comm3};
 	        	double[] inputs3 = {
-	        			robot1.getLeftEncoder(),
-	        			robot1.getRightEncoder(),
+	        			robot3.getLeftEncoder(),
+	        			robot3.getRightEncoder(),
 	        			comm1,
 	        			comm2};
 	        	
@@ -333,15 +334,16 @@ public class Thrust extends SimulationFrame {
 				comm3 = outputList.get(2).get(5);
 	        }
 	        else if(net1!= null && net2!=null && net3!=null) {
+	        	// opt 2
 	        	double[] inputs1 = {
 	        			robot1.getLeftEncoder(),
 	        			robot1.getRightEncoder()};
 	        	double[] inputs2 = {
-	        			robot1.getLeftEncoder(),
-	        			robot1.getRightEncoder()};
+	        			robot2.getLeftEncoder(),
+	        			robot2.getRightEncoder()};
 	        	double[] inputs3 = {
-	        			robot1.getLeftEncoder(),
-	        			robot1.getRightEncoder()};
+	        			robot3.getLeftEncoder(),
+	        			robot3.getRightEncoder()};
 	        	
 	        	List<Vector<Double>>  outputList = runNet(new double[][] {inputs1,inputs2,inputs3});
 				
@@ -350,6 +352,7 @@ public class Thrust extends SimulationFrame {
 				robot3.doActionByIndex(getMostConfident(outputList.get(2)));
 	        }
 	        else if(net != null) {
+	        	// opt 1
 				double[] inputs = {
 				robot1.getLeftEncoder(),
 				robot1.getRightEncoder(),
@@ -370,6 +373,8 @@ public class Thrust extends SimulationFrame {
 				robot3.doActionByIndex(getMostConfident(outputList.get(0).subList(10,15)));
 			}
 	        else {
+	        	// Manual Control
+	        	
 	        	// Apply linear thrust
 	            // Drive forward
 	            if (this.forwardThrustOn1.get())
@@ -434,7 +439,6 @@ public class Thrust extends SimulationFrame {
 	        }
         } else if (opt == 4) {
         	//1 net with x/y
-        	// TODO: opt 4
         	double[] inputs = {
 				robot1.getLeftEncoder(),
 				robot1.getRightEncoder(),
@@ -460,6 +464,33 @@ public class Thrust extends SimulationFrame {
 			robot1.doActionByIndex(getMostConfident(outputList.get(0).subList(0,5)));
 			robot2.doActionByIndex(getMostConfident(outputList.get(0).subList(5,10)));
 			robot3.doActionByIndex(getMostConfident(outputList.get(0).subList(10,15)));
+        }
+        else if (opt == 5) {
+        	//TODO:opt5
+        	double[] inputs1 = {
+        			robot1.getLeftEncoder(),
+        			robot1.getRightEncoder(),
+        			robot1.getWorldCenter().x,
+        			robot1.getWorldCenter().y
+        			};
+        	double[] inputs2 = {
+        			robot2.getLeftEncoder(),
+        			robot2.getRightEncoder(),
+        			robot2.getWorldCenter().x,
+        			robot2.getWorldCenter().y
+        			};
+        	double[] inputs3 = {
+        			robot3.getLeftEncoder(),
+        			robot3.getRightEncoder(),
+        			robot3.getWorldCenter().x,
+        			robot3.getWorldCenter().y
+        			};
+        	
+        	List<Vector<Double>>  outputList = runNet(new double[][] {inputs1,inputs2,inputs3});
+			
+			robot1.doActionByIndex(getMostConfident(outputList.get(0)));
+			robot2.doActionByIndex(getMostConfident(outputList.get(1)));
+			robot3.doActionByIndex(getMostConfident(outputList.get(2)));
         }
         box.linearStopMoving();
         box.angularStopMoving();
