@@ -492,6 +492,44 @@ public class Thrust extends SimulationFrame {
 			robot2.doActionByIndex(getMostConfident(outputList.get(1)));
 			robot3.doActionByIndex(getMostConfident(outputList.get(2)));
         }
+        else if (opt == 6) {
+        	//TODO:opt6
+        	double[] inputs1 = {
+        			robot1.getLeftEncoder(),
+        			robot1.getRightEncoder(),
+        			robot1.getWorldCenter().x,
+        			robot1.getWorldCenter().y,
+        			comm2,
+        			comm3
+        			};
+        	double[] inputs2 = {
+        			robot2.getLeftEncoder(),
+        			robot2.getRightEncoder(),
+        			robot2.getWorldCenter().x,
+        			robot2.getWorldCenter().y,
+        			comm1,
+        			comm3
+        			};
+        	double[] inputs3 = {
+        			robot3.getLeftEncoder(),
+        			robot3.getRightEncoder(),
+        			robot3.getWorldCenter().x,
+        			robot3.getWorldCenter().y,
+        			comm1,
+        			comm2
+        			};
+        	
+        	List<Vector<Double>>  outputList = runNet(new double[][] {inputs1,inputs2,inputs3});
+			
+			//The comm output node is node 5 so only use nodes 0-4 for choosing the most confident
+			robot1.doActionByIndex(getMostConfident(outputList.get(0).subList(0,5)));
+			comm1 = outputList.get(0).get(5);
+			robot2.doActionByIndex(getMostConfident(outputList.get(1).subList(0,5)));
+			comm2 = outputList.get(1).get(5);
+			robot3.doActionByIndex(getMostConfident(outputList.get(2).subList(0,5)));
+			comm3 = outputList.get(2).get(5);
+        }
+        
         box.linearStopMoving();
         box.angularStopMoving();
         box.limitSpeed(true);
