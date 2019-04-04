@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import os, fnmatch, csv, statistics
 import pandas as pd
 
+__directory__ = './'
 
 def find(pattern, path):
     result = []
@@ -56,10 +57,10 @@ def search_and_summarize(overwrite=False):
         input_list = filter_summarized(input_list)
     
     for file in input_list:
-        summarize(file)
+        summarize(__directory__+file)
         
 def get_all_opt(opt):
-    file_list = find('opt'+opt+'.*data_summary.csv','.')
+    file_list = find('opt'+opt+'.*data_summary.csv',__directory__)
     return file_list
     
 #Gen,Avg-2stdev,Avg,Avg+2stdev,Max-2stdev,Max,Max+2stdev
@@ -67,30 +68,44 @@ def sum_opt(opt):
     file_list = get_all_opt(opt)
     reader_list = []
     for file_name in file_list:
-        file = open(file_name,'rt',newline='')
+        file = open(__directory__+file_name,'rt',newline='')
         reader = csv.reader(file,delimiter=',')
         reader_list.append(reader)
     
-    sum_file = open('opt'+opt+'sum.csv','wt',newline='')
+    sum_file = open(__directory__+'opt'+opt+'sum.csv','wt',newline='')
     writer = csv.writer(sum_file,delimiter=',')
     
     while(True):
         try:
             data_avg = []
             data_max = []
+            gen = 1
             for reader in reader_list:
                 row = next(reader)
+                print(row)
                 gen = row[0]
                 data_avg.append(float(row[1]))
                 data_max.append(float(row[2]))
-            avg_avg = statistics.mean(data_avg)
-            stdev_avg = statistics.stdev(data_avg)
-            avg_max = statistics.mean(data_max)
-            stdev_max = statistics.stdev(data_max)
+            if len(data_avg) > 1:
+                avg_avg = statistics.mean(data_avg)
+                stdev_avg = statistics.stdev(data_avg)
+                avg_max = statistics.mean(data_max)
+                stdev_max = statistics.stdev(data_max)
+            elif len(data_avg) == 1:
+                avg_avg = data_avg[0]
+                stdev_avg = 0
+                avg_max = data_max[0]
+                stdev_max = 0
+            else:
+                #print("ERROR: No data found!")
+                avg_avg = 0
+                stdev_avg = 0
+                avg_max = 0
+                stdev_max = 0
+                
             sum_avg = [avg_avg-2*stdev_avg,avg_avg,avg_avg+2*stdev_avg]
             sum_max = [avg_max-2*stdev_max,avg_max,avg_max+2*stdev_max]
             
-            # haha gen isn't in this scope but it just works in python
             writer.writerow([gen]+sum_avg+sum_max)
             
         except StopIteration:
@@ -98,7 +113,7 @@ def sum_opt(opt):
             break
     
 def graph_opt(opt,show=True):
-    sum_file = open('opt'+opt+'sum.csv','rt',newline='')
+    sum_file = open(__directory__+'opt'+opt+'sum.csv','rt',newline='')
     reader = csv.reader(sum_file,delimiter=',')
     gen = []
     avg_low = []
@@ -128,7 +143,7 @@ def graph_opt(opt,show=True):
         'max_high':max_high})
             
         
-    for i in range(10):
+    for i in range(min(10,len(avg))):
         print(str(gen[i])+" : "+str(avg[i]))
         
     #plt.scatter(gen,avg)
@@ -153,15 +168,17 @@ def do_all_opt(opt):
     sum_opt(opt)
     graph_opt(opt,show=False)
 
-search_and_summarize(True)
-plt.figure(1)
-plt.subplot(211)
-do_all_opt('1')
-plt.subplot(212)
-do_all_opt('2')
-plt.show()
+def main():
+    search_and_summarize(True)
+    plt.figure(1)
+    plt.subplot(211)
+    do_all_opt('4')
+    plt.subplot(212)
+    do_all_opt('5')
+    plt.show()
 
-
+if __name__ == "__main__":
+    main()
 
 
 
