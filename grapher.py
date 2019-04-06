@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import os, fnmatch, csv, statistics
 import pandas as pd
+import sys
 
 __directory__ = './'
 
@@ -168,17 +169,22 @@ def do_all_opt(opt):
     sum_opt(opt)
     graph_opt(opt,show=False)
 
-def main():
+def main(optList):
     search_and_summarize(True)
     plt.figure(1)
-    plt.subplot(211)
-    do_all_opt('4')
-    plt.subplot(212)
-    do_all_opt('5')
+    plt.subplot(131)
+    do_all_opt(optList[0])
+    plt.subplot(132)
+    do_all_opt(optList[1])
+    plt.subplot(133)
+    do_all_opt(optList[2])
     plt.show()
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) == 4:
+        main([sys.argv[1],sys.argv[2],sys.argv[3]])
+    else:
+        main(['4','5','6'])
 
 
 
