@@ -170,14 +170,32 @@ def do_all_opt(opt):
     graph_opt(opt,show=False)
 
 def main(optList):
+    xmin = 0
+    xmax = 100 #max generation
+    ymin = 0
+    ymax = 1 #max fitness
+
     search_and_summarize(True)
     plt.figure(1)
+    
     plt.subplot(131)
     do_all_opt(optList[0])
+    axes = plt.gca()
+    axes.set_xlim([xmin,xmax])
+    axes.set_ylim([ymin,ymax])
+    
     plt.subplot(132)
     do_all_opt(optList[1])
+    axes = plt.gca()
+    axes.set_xlim([xmin,xmax])
+    axes.set_ylim([ymin,ymax])
+    
     plt.subplot(133)
     do_all_opt(optList[2])
+    axes = plt.gca()
+    axes.set_xlim([xmin,xmax])
+    axes.set_ylim([ymin,ymax])
+    
     plt.show()
 
 if __name__ == "__main__":
