@@ -178,29 +178,18 @@ def main(optList):
     search_and_summarize(True)
     plt.figure(1)
     
-    plt.subplot(131)
-    do_all_opt(optList[0])
-    axes = plt.gca()
-    axes.set_xlim([xmin,xmax])
-    axes.set_ylim([ymin,ymax])
-    
-    plt.subplot(132)
-    do_all_opt(optList[1])
-    axes = plt.gca()
-    axes.set_xlim([xmin,xmax])
-    axes.set_ylim([ymin,ymax])
-    
-    plt.subplot(133)
-    do_all_opt(optList[2])
-    axes = plt.gca()
-    axes.set_xlim([xmin,xmax])
-    axes.set_ylim([ymin,ymax])
+    for i in range(0,len(optList)):
+        plt.subplot(1,len(optList),i+1)
+        do_all_opt(optList[i])
+        axes = plt.gca()
+        axes.set_xlim([xmin,xmax])
+        axes.set_ylim([ymin,ymax])
     
     plt.show()
 
 if __name__ == "__main__":
-    if len(sys.argv) == 4:
-        main([sys.argv[1],sys.argv[2],sys.argv[3]])
+    if len(sys.argv) > 1:
+        main(sys.argv[1:])
     else:
         main(['4','5','6'])
 
