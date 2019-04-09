@@ -3,6 +3,7 @@ import os, fnmatch, csv, statistics
 import pandas as pd
 import sys
 import math
+from scipy import stats
 
 __directory__ = './'
 
@@ -104,13 +105,11 @@ def sum_opt(opt):
                 stdev_avg = 0
                 avg_max = 0
                 stdev_max = 0
+            
+            ci = get95CI(len(data_avg))
                 
-            t = 2.78
-            sn = math.sqrt(len(data_avg))
-            print(t/sn)
-                
-            sum_avg = [avg_avg-t*stdev_avg/sn, avg_avg, avg_avg+t*stdev_avg/sn]
-            sum_max = [avg_max-t*stdev_max/sn, avg_max, avg_max+t*stdev_max/sn]
+            sum_avg = [avg_avg-ci*stdev_avg, avg_avg, avg_avg+ci*stdev_avg]
+            sum_max = [avg_max-ci*stdev_max, avg_max, avg_max+ci*stdev_max]
             
             writer.writerow([gen]+sum_avg+sum_max)
             
@@ -155,11 +154,11 @@ def graph_opt(opt,show=True):
         
     #plt.scatter(gen,avg)
     plt.plot('gen','avg_low',data=data,color='xkcd:light red',linewidth=1,linestyle='dashed')
-    plt.plot('gen','avg',data=data,color='xkcd:red',linewidth=2,label="$avg \pm 2.78\sigma\slash\sqrt{n}$")
+    plt.plot('gen','avg',data=data,color='xkcd:red',linewidth=2,label="avg 95% CI")
     plt.plot('gen','avg_high',data=data,color='xkcd:light red',linewidth=1,linestyle='dashed')
     
     plt.plot('gen','max_low',data=data,color='xkcd:light blue',linewidth=1,linestyle='dashed')
-    plt.plot('gen','max',data=data,color='xkcd:blue',linewidth=2,label="$max \pm 2.78\sigma\slash\sqrt{n}$")
+    plt.plot('gen','max',data=data,color='xkcd:blue',linewidth=2,label="max 95% CI")
     plt.plot('gen','max_high',data=data,color='xkcd:light blue',linewidth=1,linestyle='dashed')
     
     plt.title('Data for opt '+str(opt))
@@ -169,7 +168,11 @@ def graph_opt(opt,show=True):
     plt.legend()
     if show:
         plt.show()
-    
+  
+#Help get two-tailed confidence interval
+def get95CI(n):
+    return stats.t.ppf(1-0.025,n-1)/math.sqrt(n)
+  
 def do_all_opt(opt):
     print(get_all_opt(opt))
     sum_opt(opt)
