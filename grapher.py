@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import os, fnmatch, csv, statistics
 import pandas as pd
 import sys
+import math
 
 __directory__ = './'
 
@@ -104,14 +105,19 @@ def sum_opt(opt):
                 avg_max = 0
                 stdev_max = 0
                 
-            sum_avg = [avg_avg-2*stdev_avg,avg_avg,avg_avg+2*stdev_avg]
-            sum_max = [avg_max-2*stdev_max,avg_max,avg_max+2*stdev_max]
+            t = 2.78
+            sn = math.sqrt(len(data_avg))
+            print(t/sn)
+                
+            sum_avg = [avg_avg-t*stdev_avg/sn, avg_avg, avg_avg+t*stdev_avg/sn]
+            sum_max = [avg_max-t*stdev_max/sn, avg_max, avg_max+t*stdev_max/sn]
             
             writer.writerow([gen]+sum_avg+sum_max)
             
         except StopIteration:
             #print("Reached end of file")
             break
+    
     
 def graph_opt(opt,show=True):
     sum_file = open(__directory__+'opt'+opt+'sum.csv','rt',newline='')
@@ -149,11 +155,11 @@ def graph_opt(opt,show=True):
         
     #plt.scatter(gen,avg)
     plt.plot('gen','avg_low',data=data,color='xkcd:light red',linewidth=1,linestyle='dashed')
-    plt.plot('gen','avg',data=data,color='xkcd:red',linewidth=2,label="$avg \pm 2\sigma$")
+    plt.plot('gen','avg',data=data,color='xkcd:red',linewidth=2,label="$avg \pm 2.78\sigma\slash\sqrt{n}$")
     plt.plot('gen','avg_high',data=data,color='xkcd:light red',linewidth=1,linestyle='dashed')
     
     plt.plot('gen','max_low',data=data,color='xkcd:light blue',linewidth=1,linestyle='dashed')
-    plt.plot('gen','max',data=data,color='xkcd:blue',linewidth=2,label="$max \pm 2\sigma$")
+    plt.plot('gen','max',data=data,color='xkcd:blue',linewidth=2,label="$max \pm 2.78\sigma\slash\sqrt{n}$")
     plt.plot('gen','max_high',data=data,color='xkcd:light blue',linewidth=1,linestyle='dashed')
     
     plt.title('Data for opt '+str(opt))
@@ -184,6 +190,10 @@ def main(optList):
         axes = plt.gca()
         axes.set_xlim([xmin,xmax])
         axes.set_ylim([ymin,ymax])
+        if(i > 0):
+            axes.get_yaxis().set_visible(False)
+    
+    plt.subplots_adjust(left=0.04,bottom=0.07,right=0.99,top=0.95,wspace=0,hspace=None)
     
     plt.show()
 
