@@ -134,7 +134,7 @@ def sum_opt(opt):
     print('t: '+str(tscore))
     
     
-def graph_opt(opt,show=True):
+def graph_opt(opt,show=True,colorAvg=None,colorMax=None):
     sum_file = open(__directory__+'opt'+opt+'sum.csv','rt',newline='')
     reader = csv.reader(sum_file,delimiter=',')
     gen = []
@@ -171,15 +171,23 @@ def graph_opt(opt,show=True):
     #    print(str(gen[i])+" : "+str(avg[i]))
         
     #plt.scatter(gen,avg)
-    plt.plot('gen','avg_low',data=data,color='xkcd:light red',linewidth=1,linestyle='dashed')
-    plt.plot('gen','avg',data=data,color='xkcd:red',linewidth=2,label="avg 95% CI")
-    plt.plot('gen','avg_high',data=data,color='xkcd:light red',linewidth=1,linestyle='dashed')
     
-    plt.plot('gen','max_low',data=data,color='xkcd:light blue',linewidth=1,linestyle='dashed')
-    plt.plot('gen','max',data=data,color='xkcd:blue',linewidth=2,label="max 95% CI")
-    plt.plot('gen','max_high',data=data,color='xkcd:light blue',linewidth=1,linestyle='dashed')
     
-    plt.title('Data for opt '+str(opt))
+    if colorAvg == None:
+        colorAvg = 'red'
+    if colorMax == None:
+        colorMax = 'blue'
+        
+    
+    plt.plot('gen','avg_low',data=data,color='xkcd:light '+colorAvg,linewidth=1,linestyle='dashed')
+    plt.plot('gen','avg',data=data,color='xkcd:'+colorAvg,linewidth=2,label="Architecture "+str(opt)+" avg 95% CI")
+    plt.plot('gen','avg_high',data=data,color='xkcd:light '+colorAvg,linewidth=1,linestyle='dashed')
+    
+    plt.plot('gen','max_low',data=data,color='xkcd:light '+colorMax,linewidth=1,linestyle='dashed')
+    plt.plot('gen','max',data=data,color='xkcd:'+colorMax,linewidth=2,label="Architecture "+str(opt)+" max 95% CI")
+    plt.plot('gen','max_high',data=data,color='xkcd:light '+colorMax,linewidth=1,linestyle='dashed')
+    
+    plt.title('Learning Performance using Architecture '+str(opt))
     plt.xlabel('generation')
     plt.ylabel('fitness')
     
@@ -192,10 +200,10 @@ def graph_opt(opt,show=True):
 def get95CI(n):
     return stats.t.ppf(1-0.025,n-1)/math.sqrt(n)
   
-def do_all_opt(opt):
+def do_all_opt(opt,colorAvg=None,colorMax=None):
     #print(get_all_opt(opt))
     sum_opt(opt)
-    graph_opt(opt,show=False)
+    graph_opt(opt,show=False,colorAvg=colorAvg,colorMax=colorMax)
 
 def graph_side_by_side(optList):
     xmin = 0
@@ -218,9 +226,47 @@ def graph_side_by_side(optList):
     plt.subplots_adjust(left=0.04,bottom=0.07,right=0.99,top=0.95,wspace=0,hspace=None)
     
     plt.show()
+    
+def graph_together(optList):
+    xmin = 0
+    xmax = 100 #max generation
+    ymin = 0
+    ymax = 1 #max fitness
+
+    search_and_summarize(True)
+    plt.figure(1)
+    
+    colorList = [
+    'red','green','blue','yellow'
+    ]
+    
+    # Comparison of Architecture(s) 1, 2, and 3...
+    title = "Comparison of Architectures "
+    title += str(optList[0])
+    if(len(optList) == 2):
+        title += " and "+str(optList[1])
+    else:
+        for i in range(1,len(optList)-1):
+            title += ", "+str(optList[i])
+        title += ", and "+str(optList[len(optList)-1])
+    for i in range(0,len(optList)):
+        #plt.subplot(1,len(optList),i+1)
+        do_all_opt(optList[i],colorList[i],colorList[i])
+        plt.title(title)
+        axes = plt.gca()
+        axes.set_xlim([xmin,xmax])
+        axes.set_ylim([ymin,ymax])
+        if(i > 0):
+            axes.get_yaxis().set_visible(False)
+    
+    plt.subplots_adjust(left=0.04,bottom=0.07,right=0.99,top=0.95,wspace=0,hspace=None)
+    
+    plt.show()
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
+    if len(sys.argv) > 1 and sys.argv[1] == 'inline':
+        graph_together(sys.argv[2:])
+    elif len(sys.argv) > 1:
         graph_side_by_side(sys.argv[1:])
     else:
         graph_side_by_side(['4','5','6'])
