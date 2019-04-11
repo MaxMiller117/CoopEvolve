@@ -78,14 +78,19 @@ def sum_opt(opt):
     sum_file = open(__directory__+'opt'+opt+'sum.csv','wt',newline='')
     writer = csv.writer(sum_file,delimiter=',')
     
+    bestAvg = 0
+    bestStDev = 0
+    bestN = len(reader_list)
+    
     while(True):
         try:
             data_avg = []
             data_max = []
+            
             gen = 1
             for reader in reader_list:
                 row = next(reader)
-                print(row)
+                #print(row)
                 gen = row[0]
                 data_avg.append(float(row[1]))
                 data_max.append(float(row[2]))
@@ -100,11 +105,15 @@ def sum_opt(opt):
                 avg_max = data_max[0]
                 stdev_max = 0
             else:
-                #print("ERROR: No data found!")
+                print("ERROR: No data found!")
                 avg_avg = 0
                 stdev_avg = 0
                 avg_max = 0
                 stdev_max = 0
+            
+            if(avg_avg > bestAvg):
+                bestAvg = avg_avg
+                bestStDev = stdev_avg
             
             ci = get95CI(len(data_avg))
                 
@@ -117,6 +126,13 @@ def sum_opt(opt):
             #print("Reached end of file")
             break
     
+    print('opt'+str(opt)+': ')
+    print('best avg fit: '+str(bestAvg))
+    print('stdev: '+str(bestStDev))
+    print('N: '+str(bestN))
+    tscore = bestAvg/(bestStDev/math.sqrt(bestN))
+    print('t: '+str(tscore))
+    
     
 def graph_opt(opt,show=True):
     sum_file = open(__directory__+'opt'+opt+'sum.csv','rt',newline='')
@@ -126,7 +142,7 @@ def graph_opt(opt,show=True):
     avg = []
     avg_high = []
     max_low = []
-    max = []
+    max_ = []
     max_high = []
     
     data = []
@@ -137,7 +153,7 @@ def graph_opt(opt,show=True):
         avg.append(round(float(row[2]),3))
         avg_high.append(round(float(row[3]),3))
         max_low.append(round(float(row[4]),3))
-        max.append(round(float(row[5]),3))
+        max_.append(round(float(row[5]),3))
         max_high.append(round(float(row[6]),3))
         
     data = ({'gen':gen,\
@@ -145,12 +161,14 @@ def graph_opt(opt,show=True):
         'avg':avg,\
         'avg_high':avg_high,\
         'max_low':max_low,\
-        'max':max,\
+        'max':max_,\
         'max_high':max_high})
             
         
-    for i in range(min(10,len(avg))):
-        print(str(gen[i])+" : "+str(avg[i]))
+    #print("Best avg opt"+str(opt)+": "+str(max(avg)))
+        
+    #for i in range(min(10,len(avg))):
+    #    print(str(gen[i])+" : "+str(avg[i]))
         
     #plt.scatter(gen,avg)
     plt.plot('gen','avg_low',data=data,color='xkcd:light red',linewidth=1,linestyle='dashed')
@@ -165,6 +183,7 @@ def graph_opt(opt,show=True):
     plt.xlabel('generation')
     plt.ylabel('fitness')
     
+    
     plt.legend()
     if show:
         plt.show()
@@ -174,11 +193,11 @@ def get95CI(n):
     return stats.t.ppf(1-0.025,n-1)/math.sqrt(n)
   
 def do_all_opt(opt):
-    print(get_all_opt(opt))
+    #print(get_all_opt(opt))
     sum_opt(opt)
     graph_opt(opt,show=False)
 
-def main(optList):
+def graph_side_by_side(optList):
     xmin = 0
     xmax = 100 #max generation
     ymin = 0
@@ -202,9 +221,9 @@ def main(optList):
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        main(sys.argv[1:])
+        graph_side_by_side(sys.argv[1:])
     else:
-        main(['4','5','6'])
+        graph_side_by_side(['4','5','6'])
 
 
 
