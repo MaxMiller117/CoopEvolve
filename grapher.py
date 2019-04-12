@@ -237,7 +237,7 @@ def graph_together(optList):
     plt.figure(1)
     
     colorList = [
-    'red','green','blue','yellow'
+    'red','green','blue','yellow','purple','brown'
     ]
     
     # Comparison of Architecture(s) 1, 2, and 3...
